@@ -305,85 +305,46 @@ Cross-cutting Concepts
 Architecture Decisions
 ======================
 
-.. list-table:: ADR 1
-   :widths: 20 80
-   :header-rows: 1
++--------------+---------------------------------------------------------------------------+
+| Section      | Description                                                               |
++==============+===========================================================================+
+| Title        | ADR 1: Adoption of Next.js as Frontend Framework                          |
++--------------+---------------------------------------------------------------------------+
+| Context      | The project needs a modern frontend framework with server-side rendering, |
+|              | strong performance, SEO support, scalability, and simple deployment. The  |
+|              | team evaluated React, Angular, Vue, and Next.js.                          |
++--------------+---------------------------------------------------------------------------+
+| Decision     | The frontend will use Next.js because it provides built-in SSR, SSG,      |
+|              | routing, and API routes that align with the project requirements.         |
++--------------+---------------------------------------------------------------------------+
+| Status       | Accepted                                                                  |
++--------------+---------------------------------------------------------------------------+
+| Consequences | Positive: better performance, stronger SEO support, a mature ecosystem,   |
+|              | and simpler routing/full-stack integration. Negative: a learning curve    |
+|              | for developers new to Next.js and a more opinionated project structure.   |
+|              | Neutral: continued dependency on the React ecosystem.                     |
++--------------+---------------------------------------------------------------------------+
 
-   * - Section
-     - Description
-   * - Title
-     - ADR 1: Adoption of Next.js as Frontend Framework
-   * - Context
-     - The project requires a modern web frontend framework that supports
-       server-side rendering, good performance, SEO capabilities, and a strong
-       developer experience. The team evaluated several options including plain
-       React, Angular, and Vue. Requirements include fast page loads,
-       scalability, and ease of deployment.
-   * - Decision
-     - We will use Next.js as the primary frontend framework. It provides
-       built-in support for server-side rendering (SSR), static site generation
-       (SSG), routing, and API routes, which align well with our project
-       requirements.
-   * - Status
-     - Accepted
-   * - Consequences
-     -
-       Positive:
-
-       - Improved performance through SSR and SSG
-       - Better SEO support
-       - Strong ecosystem and community
-       - Simplified routing and fullstack capabilities
-
-       Negative:
-
-       - Learning curve for developers unfamiliar with Next.js
-       - Opinionated structure may limit flexibility
-
-       Neutral:
-
-       - Dependency on the React ecosystem
-
-.. list-table:: ADR 2
-   :widths: 20 80
-   :header-rows: 1
-
-   * - Section
-     - Description
-   * - Title
-     - ADR 2: Adoption of Python with FastAPI for Backend Services
-   * - Context
-     - The project requires a high-performance, maintainable, and scalable
-       backend solution. Key requirements include fast API response times, ease
-       of development, type safety, and automatic API documentation. The team
-       evaluated several backend technologies such as Node.js (Express/NestJS),
-       Java (Spring Boot), and Python frameworks (Django, Flask).
-   * - Decision
-     - We will use Python with FastAPI as the backend framework. FastAPI
-       provides high performance comparable to Node.js and Go, thanks to its
-       async capabilities. It also offers built-in support for data validation
-       via Pydantic, automatic OpenAPI documentation, and a clean, modern
-       developer experience.
-   * - Status
-     - Accepted
-   * - Consequences
-     -
-       Positive:
-
-       - High performance due to asynchronous request handling
-       - Automatic generation of OpenAPI/Swagger documentation
-       - Strong type validation with Pydantic
-       - Rapid development and readability using Python
-
-       Negative:
-
-       - Smaller ecosystem compared to more established frameworks like Spring
-         Boot
-       - Requires understanding of async programming patterns
-
-       Neutral:
-
-       - Dependency on Python runtime and ecosystem
++--------------+---------------------------------------------------------------------------+
+| Section      | Description                                                               |
++==============+===========================================================================+
+| Title        | ADR 2: Adoption of Python with FastAPI for Backend Services               |
++--------------+---------------------------------------------------------------------------+
+| Context      | The project needs a backend that is performant, maintainable, scalable,   |
+|              | type-safe, and easy to document. The team evaluated Node.js, Java, and    |
+|              | Python-based frameworks including Django and Flask.                       |
++--------------+---------------------------------------------------------------------------+
+| Decision     | The backend will use Python with FastAPI because it offers high           |
+|              | performance, async support, Pydantic validation, automatic OpenAPI        |
+|              | documentation, and a clean developer experience.                          |
++--------------+---------------------------------------------------------------------------+
+| Status       | Accepted                                                                  |
++--------------+---------------------------------------------------------------------------+
+| Consequences | Positive: fast async request handling, generated API documentation,       |
+|              | strong validation, and rapid development in Python. Negative: a smaller   |
+|              | ecosystem than some enterprise frameworks and the need to understand      |
+|              | async patterns. Neutral: dependency on the Python runtime and ecosystem.  |
++--------------+---------------------------------------------------------------------------+
 
 .. _section-quality-scenarios:
 
