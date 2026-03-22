@@ -8,8 +8,11 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    include: ["app/**/*.{test,spec}.{ts,tsx}"],
+    exclude: ["e2e/**", "node_modules/**"],
     coverage: {
       provider: "v8",
+      reportsDirectory: "./test-results/coverage",
       reporter: ["text", "lcov", "html"],
       thresholds: {
         lines: 80,

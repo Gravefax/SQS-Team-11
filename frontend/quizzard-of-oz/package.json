@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:arch": "depcruise app --config .dependency-cruiser.cjs"
+    "test:arch": "vitest run app/__tests__/arch"
   },
   "dependencies": {
     "next": "16.2.0",
