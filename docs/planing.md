@@ -12,12 +12,9 @@ QuizBattle ist eine webbasierte Multiplayer-Quiz-Plattform mit zwei Spielmodi: e
 Zwei Spieler erhalten dieselben 10 Fragen aus einer zufälligen Kategorie-Mischung. Jeder spielt in seinem eigenen Tempo – die 10-Minuten-Frist läuft ab Matchbeginn. Am Ende wird verglichen, wer mehr richtige Antworten hatte. Kein Matchmaking-Druck, kein Rangverlust.
 
 **Ranked (Best-of-Five-Battle)**
-Fünf Runden, jede Runde besteht aus 3 Fragen einer gewählten Kategorie. Der Verlierer der letzten Runde wählt die nächste Kategorie aus drei vorgeschlagenen Optionen – das erzeugt strategischen Druck: Wähle ich meine Stärke oder die vermutete Schwäche des Gegners? Wer zuerst 3 Runden gewinnt, gewinnt das Match.
+Fünf Runden, jede Runde besteht aus 3 Fragen einer gewählten Kategorie. Der Verlierer der letzten Runde wählt die nächste Kategorie aus drei vorgeschlagenen Optionen.
 
 ---
-
-### Datenbankschema (erweitert)Gegenüber deinem ursprünglichen Entwurf gibt es ein paar Erweiterungen: `MATCH_PARTICIPANT` ersetzt die direkte User1/User2-Spalte in der Session – das macht das System flexibler (z. B. für spätere Gruppenspiele) und vermeidet Redundanz. `QUESTION_CACHE` ist von der Session getrennt, damit Fragen von the-trivia-api.com nicht mehrfach abgerufen werden müssen. `LEADERBOARD_ENTRY` enthält ein ELO-Rating für den Ranked-Modus.
-
 
 **user**
 
