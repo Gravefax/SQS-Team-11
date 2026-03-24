@@ -346,6 +346,25 @@ Architecture Decisions
 |              | async patterns. Neutral: dependency on the Python runtime and ecosystem.  |
 +--------------+---------------------------------------------------------------------------+
 
++--------------+---------------------------------------------------------------------------+
+| Section      | Description                                                               |
++==============+===========================================================================+
+| Title        | ADR 3: General Usage of npm as Package Manager                            |
++--------------+---------------------------------------------------------------------------+
+| Context      | We need a package manager that is performant, maintainable, scalable,     |
+|              | and easy to use. The team evaluated different package managers including  |
+|              | npm, yarn, and pnpm.                                                      |
++--------------+---------------------------------------------------------------------------+
+| Decision     | We are still in the process of evaluating the best package manager for our|
+|              | needs.                                                                    |
++--------------+---------------------------------------------------------------------------+
+| Status       |  Proposed                                                                 |
++--------------+---------------------------------------------------------------------------+
+| Consequences | Positive: Npm is a widely adopted and well-maintained package manager.    |
+|              | Negative: It can be slow and has a large disk footprint.                  |
+|              | Neutral: It is the default package manager for Node.js.                   |
++--------------+---------------------------------------------------------------------------+
+
 .. _section-quality-scenarios:
 
 Quality Requirements
