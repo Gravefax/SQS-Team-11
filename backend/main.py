@@ -1,10 +1,12 @@
 from fastapi import FastAPI
-from backend.app.database import engine
-from backend.app.models import models
+from app.database import engine, Base
+from app.routers import user
 
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SQS Team 11 API")
+
+app.include_router(user.router)
 
 
 @app.get("/")
