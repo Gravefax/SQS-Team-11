@@ -349,7 +349,7 @@ Architecture Decisions
 +--------------+---------------------------------------------------------------------------+
 | Section      | Description                                                               |
 +==============+===========================================================================+
-| Title        | ADR 3: General Usage of npm as Package Manager                            |
+| Title        | ADR 3: General Usage of pnpm as Package Manager                            |
 +--------------+---------------------------------------------------------------------------+
 | Context      | We need a package manager that is performant, maintainable, scalable,     |
 |              | and easy to use. The team evaluated different package managers including  |
@@ -358,11 +358,12 @@ Architecture Decisions
 | Decision     | We are still in the process of evaluating the best package manager for our|
 |              | needs.                                                                    |
 +--------------+---------------------------------------------------------------------------+
-| Status       |  Proposed                                                                 |
+| Status       |  Accepted                                                                 |
 +--------------+---------------------------------------------------------------------------+
-| Consequences | Positive: Npm is a widely adopted and well-maintained package manager.    |
-|              | Negative: It can be slow and has a large disk footprint.                  |
-|              | Neutral: It is the default package manager for Node.js.                   |
+| Consequences | Positive: pnpm is a fast and efficient package manager with a small disk  |
+|              | footprint.                                                                |
+|              | Negative: It has a smaller ecosystem compared to npm.                     |
+|              | Neutral: It is gaining popularity and is well-maintained.                 |
 +--------------+---------------------------------------------------------------------------+
 
 .. _section-quality-scenarios:
