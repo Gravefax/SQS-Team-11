@@ -8,20 +8,45 @@ QuizBattle ist eine webbasierte Multiplayer-Quiz-Plattform mit zwei Spielmodi: e
 
 ### Spielmodi im Detail
 
-**Unranked (Casual Duel)**
-Zwei Spieler erhalten dieselben 10 Fragen aus einer zufälligen Kategorie-Mischung. Jeder spielt in seinem eigenen Tempo – die 10-Minuten-Frist läuft ab Matchbeginn. Am Ende wird verglichen, wer mehr richtige Antworten hatte. Kein Matchmaking-Druck, kein Rangverlust.
+**Übungsmodus (Casual Duel)**
+Ein Spieler erhält 10 Fragen aus einer zufälligen Kategorie-Mischung. 
+
+**Unranked (Best-of-Five-Battle)**
+Fünf Runden, jede Runde besteht aus 3 Fragen einer gewählten Kategorie. Der Verlierer der letzten Runde wählt die nächste Kategorie aus drei vorgeschlagenen Optionen. Dies ist auch für Gastspieler möglich.
 
 **Ranked (Best-of-Five-Battle)**
-Fünf Runden, jede Runde besteht aus 3 Fragen einer gewählten Kategorie. Der Verlierer der letzten Runde wählt die nächste Kategorie aus drei vorgeschlagenen Optionen.
+Fünf Runden, jede Runde besteht aus 3 Fragen einer gewählten Kategorie. Der Verlierer der letzten Runde wählt die nächste Kategorie aus drei vorgeschlagenen Optionen. Es werden nach spielabschluss Elo anpassungen vorgenommen.
 
 ---
+
+### Website Pages
+
+Öffentlich: 
+- Leaderboard
+- Übungsmodus, Unranked
+- Session Settings 
+
+Login only:
+- Ranked
+- Usersetting (Was auch immer?)
+- User Profil 
+
+
+---
+
+### Session-Flow (Ranked, Unranked)
+
+![Ranked](./images/ranked_session_flow.svg)
+
+
+### Datenbank
 
 **user**
 
 | Spalte | Typ | Constraint |
 |---|---|---|
 | id | uuid | PK |
-| username | varchar(50) | NOT NULL, UNIQUE |
+| username | varchar(50) | NOT NULL |
 | password_hash | varchar | NOT NULL |
 | created_at | timestamp | DEFAULT now() |
 
@@ -94,18 +119,13 @@ Fünf Runden, jede Runde besteht aus 3 Fragen einer gewählten Kategorie. Der Ve
 
 ---
 
-### Session-Flow (Ranked)---
-
-![Ranked](./images/ranked_session_flow.svg)
-
-
 ### Technische Ergänzungen
 
 **Fragen-Caching:** Die-trivia-api.com-Antworten werden in `QUESTION_CACHE` gespeichert. Vor jedem API-Call prüft das Backend, ob ausreichend ungenutzte Fragen der gewünschten Kategorie im Cache liegen. Das reduziert Latenz und API-Ratenlimits.
 
 **Matchmaking:** Für Unranked reicht eine einfache Queue (FIFO). Für Ranked bietet sich ELO-basiertes Matching an – Spieler werden innerhalb eines Toleranzfensters (±150 ELO) gematcht, das sich nach 30 Sekunden Wartezeit erweitert.
 
-**Echtzeit-Kommunikation:** Für den Ranked-Modus empfiehlt sich WebSocket (z. B. Socket.io), damit beide Spieler synchron sehen, wann der Gegner eine Frage beantwortet hat. Unranked kann rein HTTP-basiert laufen.
+**Echtzeit-Kommunikation:** Für den Unranke und Ranked-Modus empfiehlt sich WebSocket (z. B. Socket.io), damit beide Spieler synchron sehen, wann der Gegner eine Frage beantwortet hat.
 
 **Auth:** JWT-Tokens für Session-Management, Passwörter mit bcrypt gehasht.
 
