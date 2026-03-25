@@ -9,16 +9,25 @@ describe("Navbar", () => {
     expect(screen.getByText(/quizard of oz/i)).toBeInTheDocument();
   });
 
-  it("renders the login button", () => {
+  it("renders the login button when not logged in", () => {
     render(<Navbar />);
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
-  it("login button is clickable without throwing", async () => {
+  it("shows username after clicking login", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    const btn = screen.getByRole("button", { name: /login/i });
-    await user.click(btn);
-    expect(btn).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /login/i }));
+    expect(screen.getByRole("button", { name: /dummyuser/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^login$/i })).not.toBeInTheDocument();
+  });
+
+  it("shows login button again after clicking username (logout)", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: /login/i }));
+    await user.click(screen.getByRole("button", { name: /dummyuser/i }));
+    expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /dummyuser/i })).not.toBeInTheDocument();
   });
 });

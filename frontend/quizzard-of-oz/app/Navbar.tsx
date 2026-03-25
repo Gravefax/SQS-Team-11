@@ -3,7 +3,20 @@
 import { useState } from 'react';
 
 export default function Navbar() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const dummyUsername = "DummyUser";
+
+  function handleLogin() {
+    // TODO: Implement real authentication
+    console.log("TODO: handleLogin");
+    setIsLoggedIn(true);
+  }
+
+  function handleLogout() {
+    // TODO: Implement real logout
+    console.log("TODO: handleLogout");
+    setIsLoggedIn(false);
+  }
 
   return (
     <header
@@ -16,12 +29,21 @@ export default function Navbar() {
       >
         Quizard of Oz
       </div>
-      <button
-        onClick={() => setIsLoginOpen(!isLoginOpen)}
-        className="login-btn px-6 py-2 font-medium rounded-lg"
-      >
-        Login
-      </button>
+      {isLoggedIn ? (
+        <button
+          onClick={handleLogout}
+          className="login-btn px-6 py-2 font-medium rounded-lg"
+        >
+          {dummyUsername}
+        </button>
+      ) : (
+        <button
+          onClick={handleLogin}
+          className="login-btn px-6 py-2 font-medium rounded-lg"
+        >
+          Login
+        </button>
+      )}
     </header>
   );
 }

@@ -43,6 +43,21 @@ const CARD_DATA = FLOATING_QUESTIONS.map((item, i) => ({
   delay: [0, -5, -9, -2, -13, -6][i],
 }));
 
+function handleRanked() {
+  // TODO: Navigate to ranked game mode
+  console.log("TODO: handleRanked");
+}
+
+function handleUnranked() {
+  // TODO: Navigate to unranked game mode
+  console.log("TODO: handleUnranked");
+}
+
+function handleUebung() {
+  // TODO: Navigate to practice/training mode
+  console.log("TODO: handleUebung");
+}
+
 export default function LandingPage() {
   return (
     <>
@@ -256,20 +271,20 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-            <button className="glass-card rounded-2xl px-16 py-5 text-center w-full">
+            <button className="glass-card rounded-2xl px-16 py-5 text-center w-full" onClick={handleRanked}>
               <div className="text-3xl mb-2" style={{ filter: 'drop-shadow(0 0 12px rgba(245,158,11,0.4))' }}>🏆</div>
               <h3 className="text-lg font-semibold mb-1" style={{ color: '#ede9fe' }}>Ranked</h3>
               <p className="text-xs" style={{ color: 'rgba(196, 181, 253, 0.5)' }}>Wettbewerb · Login erforderlich</p>
             </button>
 
             <div className="grid grid-cols-2 gap-4 w-full">
-              <button className="glass-card rounded-xl px-6 py-3 text-center">
+              <button className="glass-card rounded-xl px-6 py-3 text-center" onClick={handleUnranked}>
                 <div className="text-xl mb-1" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.4))' }}>⚡</div>
                 <h3 className="text-sm font-semibold mb-0.5" style={{ color: '#ede9fe' }}>Unranked</h3>
                 <p className="text-xs" style={{ color: 'rgba(196, 181, 253, 0.5)' }}>Frei spielen</p>
               </button>
 
-              <button className="glass-card rounded-xl px-6 py-3 text-center">
+              <button className="glass-card rounded-xl px-6 py-3 text-center" onClick={handleUebung}>
                 <div className="text-xl mb-1" style={{ filter: 'drop-shadow(0 0 10px rgba(99,102,241,0.4))' }}>📚</div>
                 <h3 className="text-sm font-semibold mb-0.5" style={{ color: '#ede9fe' }}>Übung</h3>
                 <p className="text-xs" style={{ color: 'rgba(196, 181, 253, 0.5)' }}>Trainingsmodus</p>
