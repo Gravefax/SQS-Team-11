@@ -1,32 +1,41 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 
-// next/image is not available in jsdom — replace with a plain <img>
-vi.mock("next/image", () => ({
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img {...props} alt={props.alt ?? ""} />
-  ),
-}));
-
 describe("Home page", () => {
-  it("renders the getting-started heading", () => {
+  it("renders the Quizard of Oz heading", () => {
     render(<Home />);
     expect(
-      screen.getByText(/to get started, edit the page\.tsx file/i)
+      screen.getByRole("heading", { name: /quizard of oz/i })
     ).toBeInTheDocument();
   });
 
-  it("renders a link to the documentation", () => {
+  it("renders the subtitle", () => {
     render(<Home />);
     expect(
-      screen.getByRole("link", { name: /documentation/i })
+      screen.getByText(/stelle dein wissen auf die probe/i)
     ).toBeInTheDocument();
   });
 
-  it("renders the Next.js logo image", () => {
+  it("renders all three game mode buttons", () => {
     render(<Home />);
-    expect(screen.getByAltText(/next\.js logo/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /\branked\b/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /unranked/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /übung/i })).toBeInTheDocument();
+  });
+
+  it("Ranked button shows login hint", () => {
+    render(<Home />);
+    expect(screen.getByText(/login erforderlich/i)).toBeInTheDocument();
+  });
+
+  it("Unranked button shows free play info", () => {
+    render(<Home />);
+    expect(screen.getByText(/frei spielen/i)).toBeInTheDocument();
+  });
+
+  it("Übung button shows training mode info", () => {
+    render(<Home />);
+    expect(screen.getByText(/trainingsmodus/i)).toBeInTheDocument();
   });
 });
