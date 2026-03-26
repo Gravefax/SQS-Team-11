@@ -1,7 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LandingPage from "@/app/components/LandingPage";
+
+const mockPush = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 describe("LandingPage", () => {
   it("renders the main heading", () => {
@@ -63,9 +69,10 @@ describe("LandingPage", () => {
     await user.click(screen.getByRole("button", { name: /unranked/i }));
   });
 
-  it("Übung button is clickable", async () => {
+  it("Übung button navigates to /trainings-modus", async () => {
     const user = userEvent.setup();
     render(<LandingPage />);
     await user.click(screen.getByRole("button", { name: /übung/i }));
+    expect(mockPush).toHaveBeenCalledWith("/trainings-modus");
   });
 });
