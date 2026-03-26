@@ -1,22 +1,48 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Home page", () => {
-  test("loads and shows the getting-started heading", async ({ page }) => {
+test.describe("Landing page", () => {
+  test("loads and shows the Quizard of Oz heading", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /to get started/i })
+      page.getByRole("heading", { name: /quizard of oz/i })
     ).toBeVisible();
   });
 
-  test("has a working Documentation link", async ({ page }) => {
+  test("page title is set correctly", async ({ page }) => {
     await page.goto("/");
-    const link = page.getByRole("link", { name: /documentation/i });
-    await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", /nextjs\.org\/docs/);
+    await expect(page).toHaveTitle(/quizard of oz/i);
   });
 
-  test("page title is set", async ({ page }) => {
+  test("navbar shows the brand name", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/create next app/i);
+    await expect(page.getByText(/quizard of oz/i).first()).toBeVisible();
+  });
+
+  test("navbar shows the login button", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: "Login", exact: true })).toBeVisible();
+  });
+
+  test("shows the subtitle", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByText(/stelle dein wissen auf die probe/i)
+    ).toBeVisible();
+  });
+
+  test("shows all three game mode buttons", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: /\branked\b/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /unranked/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /übung/i })).toBeVisible();
+  });
+
+  test("Ranked button is prominent above the other two", async ({ page }) => {
+    await page.goto("/");
+    const ranked = page.getByRole("button", { name: /\branked\b/i });
+    const unranked = page.getByRole("button", { name: /unranked/i });
+    const rankedBox = await ranked.boundingBox();
+    const unrankedBox = await unranked.boundingBox();
+    expect(rankedBox!.y).toBeLessThan(unrankedBox!.y);
   });
 });
