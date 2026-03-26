@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchPracticeQuestions, checkPracticeAnswer } from '../lib/api/questions';
+import { fetchPracticeQuestions, checkPracticeAnswer } from '../lib/api/quiz';
 import { AnswerResult, Question } from '../lib/interfaces/Questions';
 
 type QuizState = 'idle' | 'loading' | 'playing' | 'answered' | 'finished' | 'error';

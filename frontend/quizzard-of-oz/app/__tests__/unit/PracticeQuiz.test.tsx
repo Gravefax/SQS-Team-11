@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PracticeQuiz from "@/app/trainings-modus/PracticeQuiz";
-import { fetchPracticeQuestions, checkPracticeAnswer } from "@/app/lib/api/questions";
+import { fetchPracticeQuestions, checkPracticeAnswer } from "@/app/lib/api/quiz";
 
 const mockPush = vi.fn();
 
