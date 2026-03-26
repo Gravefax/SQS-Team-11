@@ -1,30 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import LoginMenu from '@/app/components/login-menu/LoginMenu';
 import LoginButton from "@/app/components/login-button/LoginButton";
+import useAuthStore from "@/app/stores/authStore";
 
 export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoginMenuOpen, setIsLoginMenuOpen] = useState(false);
+  const authStore = useAuthStore();
   const dummyUsername = "DummyUser";
-
-  function handleLoginClick() {
-    setIsLoginMenuOpen((prev) => !prev);
-  }
-
-  function handleLogin() {
-    // TODO: Implement real authentication
-    console.log("TODO: handleLogin");
-    setIsLoginMenuOpen(false);
-    setIsLoggedIn(true);
-  }
+  const isLoggedIn = !!authStore.getCredential();
 
   function handleLogout() {
     // TODO: Implement real logout
     console.log("TODO: handleLogout");
-    setIsLoginMenuOpen(false);
-    setIsLoggedIn(false);
+    authStore.setCredential(null);
   }
 
   return (
@@ -36,7 +24,7 @@ export default function Navbar() {
         className="text-xl font-semibold tracking-widest uppercase"
         style={{ color: 'rgba(var(--oz-violet-text-rgb), 0.65)', letterSpacing: '0.22em' }}
       >
-        Quizard of Oz
+        Quizzard of Oz
       </div>
       {isLoggedIn ? (
         <button

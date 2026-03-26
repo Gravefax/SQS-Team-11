@@ -1,6 +1,6 @@
-import AuthCredentials from "@/app/models/authCredentials";
+import AuthConfig from "@/app/models/AuthConfig";
 
-const authCredentials: AuthCredentials = {
+const authCredentials: AuthConfig = {
     clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
 };
 
