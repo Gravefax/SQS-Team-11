@@ -67,7 +67,7 @@ jobs:
           .venv/bin/pip install -r requirements.txt
 
       - name: Run tests
-        run: .venv/bin/pytest tests/ -v
+        run: .venv/bin/pytest tests/ -v --cov=app --cov-report=term-missing
 
   test:
     name: Test
