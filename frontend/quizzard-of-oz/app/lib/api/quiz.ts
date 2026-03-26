@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { AnswerResult, Question } from "../interfaces/Questions";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
-
+const API_BASE = process.env.API_BASE;
 
 export async function fetchPracticeQuestions(): Promise<Question[]> {
   try {
