@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import user
-from backend.app.routers import quiz
+from app.routers import quiz
 
 Base.metadata.create_all(bind=engine)
 

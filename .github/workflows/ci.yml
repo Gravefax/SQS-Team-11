@@ -116,6 +116,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/quizzard-of-oz/pnpm-lock.yaml
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/quizzard-of-oz/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
