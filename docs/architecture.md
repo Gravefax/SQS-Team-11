@@ -2,27 +2,48 @@
 
 ## Introduction and Goals
 
+Quizzard of Oz is a web-based quiz platform for players who want either a
+casual solo experience or a competitive multiplayer match with visible
+progress. The system exists to combine accessible quiz gameplay, persistent
+player identity, and synchronized sessions in one product that is simple for
+players to use and maintainable for the team to evolve.
+
 ### Requirements Overview
 
-Quizzard of Oz is a multiplayer quiz platform that supports both relaxed and
-competitive game sessions. The system needs to support session management,
-question delivery, ranking, and a polished web experience for public and logged
-in players.
+The most important functional requirements for the current system are:
+
+1. The platform must support three quiz experiences: practice mode for solo
+   play, unranked multiplayer sessions for casual competition, and ranked
+   multiplayer sessions with Elo updates.
+2. Public users must be able to access core product pages such as the
+   leaderboard, practice mode, unranked mode, and session settings without
+   requiring a login.
+3. Registered users must have a persistent player identity that connects their
+   profile, match history, and ranked progression.
+4. Ranked and profile-related features must be protected by authentication so
+   only authorized users can access them.
+5. Multiplayer sessions must stay synchronized across both players, including
+   session state, question flow, scoring, and round progression.
+6. The backend must retrieve quiz questions from an external trivia provider
+   and cache them locally to reduce latency and dependency on repeated live API
+   calls.
 
 ### Quality Goals
 
-- Keep gameplay responsive, especially in live ranked and unranked sessions.
-- Make the architecture easy for the team to understand and extend.
-- Support a clear separation between frontend, backend, and persistence.
-- Preserve enough flexibility to evolve game modes and question sourcing.
+| Priority | Quality Goal | Why It Matters | Concrete Expectation |
+| --- | --- | --- | --- |
+| 1 | Performance | Quiz rounds should feel immediate, especially in ranked and unranked matches where waiting breaks the game flow. | A player should receive the next question or round update without noticeable delay during an active session because the backend uses cached questions and lightweight APIs. |
+| 2 | Security | Ranked progression, user profiles, and future personal data must be protected from unauthorized access or manipulation. | Only authenticated users can access ranked-only capabilities, and credentials are stored as password hashes while session access is controlled through tokens. |
+| 3 | Maintainability | The project is developed in a course and team setting, so new contributors must understand and change the system without high onboarding cost. | Frontend, backend, persistence, and documentation responsibilities stay clearly separated so a new developer can identify the relevant component quickly. |
+| 4 | Reliability | A multiplayer match must behave consistently even when external services are slow or temporarily unavailable. | Running matches should continue without direct dependency on every external trivia request because question data is prepared from local cache whenever possible. |
 
 ### Stakeholders
 
-| Role | Contact | Expectations |
+| Role | Expectations | Architectural Interest |
 | --- | --- | --- |
-| Development Team | Project contributors | Shared architecture language, maintainable implementation |
-| Players | End users | Reliable gameplay, clear UX, responsive sessions |
-| Reviewers / Instructors | Course stakeholders | Understandable decisions, documented architecture, visible progress |
+| Players | Want responsive quiz gameplay, fair ranked and unranked sessions, and a clear user experience across public and authenticated features. | Low latency, reliable session handling, transparent ranking behavior, and stable frontend interactions. |
+| Development Team | Needs a codebase that is understandable, modular, and realistic to extend during the project. | Clear separation of frontend, backend, persistence, and external integrations; understandable documentation and interfaces. |
+| Reviewers / Instructors | Need to understand the system quickly and evaluate technical decisions, quality, and progress. | Traceable requirements, explicit architectural reasoning, and documentation that reflects the implemented system. |
 
 ## Architecture Constraints
 
