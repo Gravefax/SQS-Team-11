@@ -152,3 +152,5 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PW }}
           POSTGRES_DB: quizbattle
           POSTGRES_PORT: 12732
+          BACKEND_URL: http://127.0.0.1:8000
+          NEXT_PUBLIC_API_BASE: /api
