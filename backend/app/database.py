@@ -4,7 +4,8 @@ from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+load_dotenv(dotenv_path=os.path.join(BACKEND_ROOT, ".env"))
 
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
