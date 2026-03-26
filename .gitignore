@@ -4,5 +4,6 @@ CLAUDE.md
 AGENTS.md
 .venv
 .env
+.idea
 
 test-results/

@@ -14,10 +14,21 @@ describe("Navbar", () => {
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
-  it("shows username after clicking login", async () => {
+  it("opens the login menu after clicking login", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
     await user.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(screen.getByRole("menu", { name: /login-menue/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /mit google anmelden/i })).toBeInTheDocument();
+  });
+
+  it("shows username after confirming login from menu", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: /login/i }));
+    await user.click(screen.getByRole("menuitem", { name: /mit google anmelden/i }));
+
     expect(screen.getByRole("button", { name: /dummyuser/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^login$/i })).not.toBeInTheDocument();
   });
@@ -26,6 +37,7 @@ describe("Navbar", () => {
     const user = userEvent.setup();
     render(<Navbar />);
     await user.click(screen.getByRole("button", { name: /login/i }));
+    await user.click(screen.getByRole("menuitem", { name: /mit google anmelden/i }));
     await user.click(screen.getByRole("button", { name: /dummyuser/i }));
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /dummyuser/i })).not.toBeInTheDocument();

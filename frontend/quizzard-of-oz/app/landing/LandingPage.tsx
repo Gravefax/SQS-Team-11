@@ -165,7 +165,12 @@ export default function LandingPage() {
         }
         .shimmer-text {
           background: linear-gradient(
-            90deg, #d97706 0%, #fde68a 25%, #f59e0b 50%, #fde68a 75%, #d97706 100%
+            90deg,
+            rgba(var(--oz-gold-dark-rgb), 1) 0%,
+            rgba(var(--oz-gold-light-rgb), 1) 25%,
+            rgba(var(--oz-gold-rgb), 1) 50%,
+            rgba(var(--oz-gold-light-rgb), 1) 75%,
+            rgba(var(--oz-gold-dark-rgb), 1) 100%
           );
           background-size: 300% auto;
           -webkit-background-clip: text;
@@ -174,17 +179,17 @@ export default function LandingPage() {
           animation: shimmer 4s linear infinite, subtleBob 6s ease-in-out infinite;
         }
         .glass-card {
-          background: rgba(255, 255, 255, 0.03);
+          background: rgba(var(--oz-white-rgb), 0.03);
           backdrop-filter: blur(12px);
-          border: 1px solid rgba(167, 139, 250, 0.18);
+          border: 1px solid rgba(var(--oz-violet-light-rgb), 0.18);
           transition: background 0.3s ease, border-color 0.3s ease,
                       transform 0.3s ease, box-shadow 0.3s ease;
         }
         .glass-card:hover {
-          background: rgba(139, 92, 246, 0.14);
-          border-color: rgba(167, 139, 250, 0.55);
+          background: rgba(var(--oz-violet-rgb), 0.14);
+          border-color: rgba(var(--oz-violet-light-rgb), 0.55);
           transform: translateY(-6px);
-          box-shadow: 0 24px 48px rgba(139, 92, 246, 0.22);
+          box-shadow: 0 24px 48px rgba(var(--oz-violet-rgb), 0.22);
         }
       `}</style>
 
@@ -198,7 +203,7 @@ export default function LandingPage() {
               width: '680px', height: '680px',
               top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, rgba(109,40,217,0.06) 55%, transparent 100%)',
+              background: 'radial-gradient(circle, rgba(var(--oz-violet-rgb), 0.18) 0%, rgba(var(--oz-violet-shadow-rgb), 0.06) 55%, transparent 100%)',
               animation: 'pulseGlow 5s ease-in-out infinite',
             }}
           />
@@ -209,7 +214,7 @@ export default function LandingPage() {
               className="absolute font-bold select-none"
               style={{
                 fontSize: qm.size, top: qm.top, left: qm.left,
-                color: `rgba(167, 139, 250, ${qm.opacity})`,
+                color: `rgba(var(--oz-violet-light-rgb), ${qm.opacity})`,
                 lineHeight: 1,
                 animation: `ambFloat${qm.anim} ${qm.dur}s ease-in-out ${qm.delay}s infinite`,
               }}
@@ -222,7 +227,7 @@ export default function LandingPage() {
               className="absolute font-bold select-none"
               style={{
                 fontSize: qm.size, left: qm.left,
-                color: 'rgba(167, 139, 250, 0.11)',
+                color: 'rgba(var(--oz-violet-light-rgb), 0.11)',
                 lineHeight: 1,
                 animation: `qmPath${qm.path} ${qm.dur}s ease-in-out ${qm.delay}s infinite`,
                 animationFillMode: 'backwards',
@@ -236,15 +241,15 @@ export default function LandingPage() {
               className="absolute rounded-2xl p-4"
               style={{
                 width: '210px', left: item.left,
-                border: '1px solid rgba(167, 139, 250, 0.13)',
-                background: 'rgba(139, 92, 246, 0.05)',
+                border: '1px solid rgba(var(--oz-violet-light-rgb), 0.13)',
+                background: 'rgba(var(--oz-violet-rgb), 0.05)',
                 backdropFilter: 'blur(6px)',
                 animation: `cardPath${item.path} ${item.dur}s ease-in-out ${item.delay}s infinite`,
               }}
             >
-              <div style={{ fontSize: '0.5rem', color: 'rgba(196, 181, 253, 0.45)', marginBottom: '5px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Frage</div>
-              <div style={{ fontSize: '0.63rem', color: 'rgba(255, 255, 255, 0.35)', lineHeight: 1.45 }}>{item.q}</div>
-              <div style={{ marginTop: '8px', fontSize: '0.6rem', color: 'rgba(245, 158, 11, 0.38)', fontWeight: 600 }}>{item.a}</div>
+              <div style={{ fontSize: '0.5rem', color: 'rgba(var(--oz-violet-text-rgb), 0.45)', marginBottom: '5px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Frage</div>
+              <div style={{ fontSize: '0.63rem', color: 'rgba(var(--oz-white-rgb), 0.35)', lineHeight: 1.45 }}>{item.q}</div>
+              <div style={{ marginTop: '8px', fontSize: '0.6rem', color: 'rgba(var(--oz-gold-rgb), 0.38)', fontWeight: 600 }}>{item.a}</div>
             </div>
           ))}
         </div>
@@ -255,7 +260,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <div
               className="text-sm font-medium tracking-widest uppercase mb-6"
-              style={{ color: 'rgba(245, 158, 11, 0.65)', letterSpacing: '0.3em' }}
+              style={{ color: 'rgba(var(--oz-gold-rgb), 0.65)', letterSpacing: '0.3em' }}
             >
               ✦ Das ultimative Quiz-Erlebnis ✦
             </div>
@@ -265,29 +270,29 @@ export default function LandingPage() {
             >
               Quizard of Oz
             </h1>
-            <p className="text-lg" style={{ color: 'rgba(196, 181, 253, 0.55)' }}>
+            <p className="text-lg" style={{ color: 'rgba(var(--oz-violet-text-rgb), 0.55)' }}>
               Stelle dein Wissen auf die Probe
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-4 w-full max-w-sm">
             <button className="glass-card rounded-2xl px-16 py-5 text-center w-full" onClick={handleRanked}>
-              <div className="text-3xl mb-2" style={{ filter: 'drop-shadow(0 0 12px rgba(245,158,11,0.4))' }}>🏆</div>
-              <h3 className="text-lg font-semibold mb-1" style={{ color: '#ede9fe' }}>Ranked</h3>
-              <p className="text-xs" style={{ color: 'rgba(196, 181, 253, 0.5)' }}>Wettbewerb · Login erforderlich</p>
+              <div className="text-3xl mb-2" style={{ filter: 'drop-shadow(0 0 12px rgba(var(--oz-gold-rgb), 0.4))' }}>🏆</div>
+              <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--oz-surface-heading)' }}>Ranked</h3>
+              <p className="text-xs" style={{ color: 'rgba(var(--oz-violet-text-rgb), 0.5)' }}>Wettbewerb · Login erforderlich</p>
             </button>
 
             <div className="grid grid-cols-2 gap-4 w-full">
               <button className="glass-card rounded-xl px-6 py-3 text-center" onClick={handleUnranked}>
-                <div className="text-xl mb-1" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.4))' }}>⚡</div>
-                <h3 className="text-sm font-semibold mb-0.5" style={{ color: '#ede9fe' }}>Unranked</h3>
-                <p className="text-xs" style={{ color: 'rgba(196, 181, 253, 0.5)' }}>Frei spielen</p>
+                <div className="text-xl mb-1" style={{ filter: 'drop-shadow(0 0 10px rgba(var(--oz-violet-rgb), 0.4))' }}>⚡</div>
+                <h3 className="text-sm font-semibold mb-0.5" style={{ color: 'var(--oz-surface-heading)' }}>Unranked</h3>
+                <p className="text-xs" style={{ color: 'rgba(var(--oz-violet-text-rgb), 0.5)' }}>Frei spielen</p>
               </button>
 
               <button className="glass-card rounded-xl px-6 py-3 text-center" onClick={handleUebung}>
-                <div className="text-xl mb-1" style={{ filter: 'drop-shadow(0 0 10px rgba(99,102,241,0.4))' }}>📚</div>
-                <h3 className="text-sm font-semibold mb-0.5" style={{ color: '#ede9fe' }}>Übung</h3>
-                <p className="text-xs" style={{ color: 'rgba(196, 181, 253, 0.5)' }}>Trainingsmodus</p>
+                <div className="text-xl mb-1" style={{ filter: 'drop-shadow(0 0 10px rgba(var(--oz-indigo-rgb), 0.4))' }}>📚</div>
+                <h3 className="text-sm font-semibold mb-0.5" style={{ color: 'var(--oz-surface-heading)' }}>Übung</h3>
+                <p className="text-xs" style={{ color: 'rgba(var(--oz-violet-text-rgb), 0.5)' }}>Trainingsmodus</p>
               </button>
             </div>
           </div>

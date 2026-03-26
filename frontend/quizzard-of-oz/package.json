@@ -14,6 +14,8 @@
     "test:arch": "vitest run app/__tests__/arch"
   },
   "dependencies": {
+    "@next/env": "^16.2.1",
+    "@react-oauth/google": "^0.13.4",
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4"
