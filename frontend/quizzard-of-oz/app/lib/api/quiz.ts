@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { AnswerResult, Question } from "../interfaces/Questions";
 
-const API_BASE = process.env.API_BASE;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 export async function fetchPracticeQuestions(): Promise<Question[]> {
   try {

@@ -40,6 +40,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          BACKEND_URL: http://127.0.0.1:8000
+          API_BASE: /api
 
   test:
     name: Test
