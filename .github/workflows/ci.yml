@@ -89,7 +89,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.SuperSecret }}
           POSTGRES_DB: quizbattle
         ports:
-          - 5432:5432
+          - 12732:12732
         options: >-
           --health-cmd "pg_isready -U quizbattle"
           --health-interval 10s
@@ -137,6 +137,6 @@ jobs:
         run: pnpm test:e2e
         env:
           POSTGRES_USER: quizbattle
-          POSTGRES_PASSWORD: changeme
+          POSTGRES_PASSWORD: ${{ secrets.SuperSecret }}
           POSTGRES_DB: quizbattle
-          POSTGRES_PORT: 5432
+          POSTGRES_PORT: 12732
