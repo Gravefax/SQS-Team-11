@@ -4,5 +4,7 @@ CLAUDE.md
 AGENTS.md
 .venv
 .env
+.docdeps/
+.venvdocs
 
 test-results/
