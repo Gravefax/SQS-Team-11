@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 const FLOATING_QUESTIONS = [
   { q: 'Was ist die Hauptstadt von Frankreich?', a: 'Paris' },
   { q: 'Wie viele Planeten hat unser Sonnensystem?', a: '8' },
@@ -44,21 +46,20 @@ const CARD_DATA = FLOATING_QUESTIONS.map((item, i) => ({
 }));
 
 function handleRanked() {
-  // TODO: Navigate to ranked game mode
   console.log("TODO: handleRanked");
 }
 
 function handleUnranked() {
-  // TODO: Navigate to unranked game mode
   console.log("TODO: handleUnranked");
 }
 
-function handleUebung() {
-  // TODO: Navigate to practice/training mode
-  console.log("TODO: handleUebung");
-}
-
 export default function LandingPage() {
+  const router = useRouter();
+
+  function handleUebung() {
+    router.push('/trainings-modus');
+  }
+
   return (
     <>
       <style>{`

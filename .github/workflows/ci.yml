@@ -77,8 +77,75 @@ jobs:
       - name: Architecture Tests
         run: pnpm test:arch
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quizbattle
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PW }}
+          POSTGRES_DB: quizbattle
+        ports:
+          - 12732:5432
+        options: >-
+          --health-cmd "pg_isready -U quizbattle"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: frontend/quizzard-of-oz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/quizzard-of-oz/pnpm-lock.yaml
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/quizzard-of-oz/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
       - name: E2E Tests
         run: pnpm test:e2e
+        env:
+          POSTGRES_USER: quizbattle
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PW }}
+          POSTGRES_DB: quizbattle
+          POSTGRES_PORT: 12732
