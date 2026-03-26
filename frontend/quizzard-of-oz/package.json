@@ -11,11 +11,13 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:locale2e": "bash scripts/e2e.sh",
     "test:arch": "vitest run app/__tests__/arch"
   },
   "dependencies": {
     "@next/env": "^16.2.1",
     "@react-oauth/google": "^0.13.4",
+    "axios": "^1.13.6",
     "axios": "^1.13.6",
     "next": "16.2.1",
     "react": "19.2.4",
