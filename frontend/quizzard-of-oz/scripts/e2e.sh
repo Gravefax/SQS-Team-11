@@ -6,7 +6,7 @@ ROOT_DIR="$SCRIPT_DIR/../../.."
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
 
 # Load .env so the backend webServer process gets the DB credentials
-if [ -f "$ROOT_DIR/.env" ]; then
+if [[ -f "$ROOT_DIR/.env" ]]; then
   set -a
   # shellcheck source=/dev/null
   source "$ROOT_DIR/.env"
@@ -29,7 +29,7 @@ MAX_RETRIES=30
 RETRY=0
 until docker exec "$CONTAINER_NAME" pg_isready -U "${POSTGRES_USER:-quizbattle}" -q; do
   RETRY=$((RETRY + 1))
-  if [ "$RETRY" -ge "$MAX_RETRIES" ]; then
+  if [[ "$RETRY" -ge "$MAX_RETRIES" ]]; then
     echo "[e2e] PostgreSQL did not become ready in time. Aborting."
     exit 1
   fi
@@ -42,7 +42,7 @@ EXIT_CODE=0
 pnpm exec playwright test "$@" || EXIT_CODE=$?
 
 # ── 5. Stop database (skip if DB was already running before this script) ─────
-if [ "${KEEP_DB:-false}" != "true" ]; then
+if [[ "${KEEP_DB:-false}" != "true" ]]; then
   echo "[e2e] Stopping database..."
   docker compose -f "$COMPOSE_FILE" stop postgres
 fi
