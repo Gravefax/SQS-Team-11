@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-vi.mock("@/app/lib/api", () => ({
+vi.mock("@/app/lib/api/quiz", () => ({
   fetchPracticeQuestions: vi.fn(),
   checkPracticeAnswer: vi.fn(),
 }));
