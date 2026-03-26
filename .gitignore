@@ -5,5 +5,7 @@ AGENTS.md
 .venv
 .env
 .idea
+.docdeps/
+.venvdocs
 
 test-results/

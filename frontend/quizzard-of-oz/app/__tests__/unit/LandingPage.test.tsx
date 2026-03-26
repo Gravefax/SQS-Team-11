@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import LandingPage from "@/app/landing/LandingPage";
 
 describe("LandingPage", () => {
@@ -48,5 +49,23 @@ describe("LandingPage", () => {
   it("renders exactly 3 game mode buttons", () => {
     render(<LandingPage />);
     expect(screen.getAllByRole("button")).toHaveLength(3);
+  });
+
+  it("Ranked button is clickable", async () => {
+    const user = userEvent.setup();
+    render(<LandingPage />);
+    await user.click(screen.getByRole("button", { name: /\branked\b/i }));
+  });
+
+  it("Unranked button is clickable", async () => {
+    const user = userEvent.setup();
+    render(<LandingPage />);
+    await user.click(screen.getByRole("button", { name: /unranked/i }));
+  });
+
+  it("Übung button is clickable", async () => {
+    const user = userEvent.setup();
+    render(<LandingPage />);
+    await user.click(screen.getByRole("button", { name: /übung/i }));
   });
 });

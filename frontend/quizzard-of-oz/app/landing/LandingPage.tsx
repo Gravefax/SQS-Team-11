@@ -10,29 +10,29 @@ const FLOATING_QUESTIONS = [
 ];
 
 const QM_DATA = [
-  { size: '9rem',   left: '3%',  path: 0, dur: 11, delay: 0.0 },
-  { size: '4rem',   left: '14%', path: 2, dur: 9,  delay: 0.5 },
-  { size: '12rem',  left: '23%', path: 1, dur: 14, delay: 1.2 },
-  { size: '6rem',   left: '35%', path: 3, dur: 10, delay: 0.3 },
-  { size: '8rem',   left: '47%', path: 4, dur: 12, delay: 1.8 },
-  { size: '3rem',   left: '57%', path: 0, dur: 8,  delay: 0.8 },
-  { size: '11rem',  left: '66%', path: 2, dur: 13, delay: 0.2 },
-  { size: '5rem',   left: '75%', path: 1, dur: 9,  delay: 0.4 },
-  { size: '7rem',   left: '83%', path: 3, dur: 11, delay: 1.5 },
-  { size: '4rem',   left: '91%', path: 4, dur: 10, delay: 0.1 },
-  { size: '10rem',  left: '41%', path: 1, dur: 13, delay: 2.5 },
-  { size: '3.5rem', left: '28%', path: 3, dur: 8,  delay: 1.0 },
+  { id: 'qm-0',  size: '9rem',   left: '3%',  path: 0, dur: 11, delay: 0 },
+  { id: 'qm-1',  size: '4rem',   left: '14%', path: 2, dur: 9,  delay: 0.5 },
+  { id: 'qm-2',  size: '12rem',  left: '23%', path: 1, dur: 14, delay: 1.2 },
+  { id: 'qm-3',  size: '6rem',   left: '35%', path: 3, dur: 10, delay: 0.3 },
+  { id: 'qm-4',  size: '8rem',   left: '47%', path: 4, dur: 12, delay: 1.8 },
+  { id: 'qm-5',  size: '3rem',   left: '57%', path: 0, dur: 8,  delay: 0.8 },
+  { id: 'qm-6',  size: '11rem',  left: '66%', path: 2, dur: 13, delay: 0.2 },
+  { id: 'qm-7',  size: '5rem',   left: '75%', path: 1, dur: 9,  delay: 0.4 },
+  { id: 'qm-8',  size: '7rem',   left: '83%', path: 3, dur: 11, delay: 1.5 },
+  { id: 'qm-9',  size: '4rem',   left: '91%', path: 4, dur: 10, delay: 0.1 },
+  { id: 'qm-10', size: '10rem',  left: '41%', path: 1, dur: 13, delay: 2.5 },
+  { id: 'qm-11', size: '3.5rem', left: '28%', path: 3, dur: 8,  delay: 1 },
 ];
 
 const AMB_QM_DATA = [
-  { size: '16rem', top: '8%',  left: '5%',  anim: 0, dur: 9,  delay: 0.0, opacity: 0.06 },
-  { size: '7rem',  top: '20%', left: '88%', anim: 1, dur: 7,  delay: 1.2, opacity: 0.09 },
-  { size: '22rem', top: '55%', left: '2%',  anim: 2, dur: 11, delay: 0.5, opacity: 0.04 },
-  { size: '10rem', top: '75%', left: '82%', anim: 0, dur: 8,  delay: 2.0, opacity: 0.07 },
-  { size: '13rem', top: '38%', left: '78%', anim: 1, dur: 10, delay: 0.8, opacity: 0.05 },
-  { size: '5rem',  top: '65%', left: '45%', anim: 2, dur: 6,  delay: 1.5, opacity: 0.10 },
-  { size: '18rem', top: '12%', left: '55%', anim: 0, dur: 12, delay: 3.0, opacity: 0.04 },
-  { size: '8rem',  top: '48%', left: '22%', anim: 1, dur: 8,  delay: 0.3, opacity: 0.08 },
+  { id: 'amb-0', size: '16rem', top: '8%',  left: '5%',  anim: 0, dur: 9,  delay: 0, opacity: 0.06 },
+  { id: 'amb-1', size: '7rem',  top: '20%', left: '88%', anim: 1, dur: 7,  delay: 1.2, opacity: 0.09 },
+  { id: 'amb-2', size: '22rem', top: '55%', left: '2%',  anim: 2, dur: 11, delay: 0.5, opacity: 0.04 },
+  { id: 'amb-3', size: '10rem', top: '75%', left: '82%', anim: 0, dur: 8,  delay: 2, opacity: 0.07 },
+  { id: 'amb-4', size: '13rem', top: '38%', left: '78%', anim: 1, dur: 10, delay: 0.8, opacity: 0.05 },
+  { id: 'amb-5', size: '5rem',  top: '65%', left: '45%', anim: 2, dur: 6,  delay: 1.5, opacity: 0.1 },
+  { id: 'amb-6', size: '18rem', top: '12%', left: '55%', anim: 0, dur: 12, delay: 3, opacity: 0.04 },
+  { id: 'amb-7', size: '8rem',  top: '48%', left: '22%', anim: 1, dur: 8,  delay: 0.3, opacity: 0.08 },
 ];
 
 const CARD_DATA = FLOATING_QUESTIONS.map((item, i) => ({
@@ -208,9 +208,9 @@ export default function LandingPage() {
             }}
           />
 
-          {AMB_QM_DATA.map((qm, i) => (
+          {AMB_QM_DATA.map((qm) => (
             <div
-              key={i}
+              key={qm.id}
               className="absolute font-bold select-none"
               style={{
                 fontSize: qm.size, top: qm.top, left: qm.left,
@@ -221,9 +221,9 @@ export default function LandingPage() {
             >?</div>
           ))}
 
-          {QM_DATA.map((qm, i) => (
+          {QM_DATA.map((qm) => (
             <div
-              key={i}
+              key={qm.id}
               className="absolute font-bold select-none"
               style={{
                 fontSize: qm.size, left: qm.left,
@@ -235,9 +235,9 @@ export default function LandingPage() {
             >?</div>
           ))}
 
-          {CARD_DATA.map((item, i) => (
+          {CARD_DATA.map((item) => (
             <div
-              key={i}
+              key={item.q}
               className="absolute rounded-2xl p-4"
               style={{
                 width: '210px', left: item.left,

@@ -20,7 +20,7 @@ test.describe("Landing page", () => {
 
   test("navbar shows the login button", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("button", { name: /login/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Login", exact: true })).toBeVisible();
   });
 
   test("shows the subtitle", async ({ page }) => {
@@ -32,14 +32,14 @@ test.describe("Landing page", () => {
 
   test("shows all three game mode buttons", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("button", { name: /ranked/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /\branked\b/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /unranked/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /übung/i })).toBeVisible();
   });
 
   test("Ranked button is prominent above the other two", async ({ page }) => {
     await page.goto("/");
-    const ranked = page.getByRole("button", { name: /ranked/i });
+    const ranked = page.getByRole("button", { name: /\branked\b/i });
     const unranked = page.getByRole("button", { name: /unranked/i });
     const rankedBox = await ranked.boundingBox();
     const unrankedBox = await unranked.boundingBox();
