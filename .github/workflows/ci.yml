@@ -86,7 +86,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: quizbattle
-          POSTGRES_PASSWORD: ${{ secrets.SuperSecret }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PW }}
           POSTGRES_DB: quizbattle
         ports:
           - 12732:12732
@@ -137,6 +137,6 @@ jobs:
         run: pnpm test:e2e
         env:
           POSTGRES_USER: quizbattle
-          POSTGRES_PASSWORD: ${{ secrets.SuperSecret }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PW }}
           POSTGRES_DB: quizbattle
           POSTGRES_PORT: 12732
