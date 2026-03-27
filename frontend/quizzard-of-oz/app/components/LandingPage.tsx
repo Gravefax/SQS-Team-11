@@ -45,19 +45,19 @@ const CARD_DATA = FLOATING_QUESTIONS.map((item, i) => ({
   delay: [0, -5, -9, -2, -13, -6][i],
 }));
 
-function handleRanked() {
-  console.log("TODO: handleRanked");
-}
-
-function handleUnranked() {
-  console.log("TODO: handleUnranked");
-}
-
 export default function LandingPage() {
   const router = useRouter();
 
   function handleUebung() {
     router.push('/trainings-modus');
+  }
+
+  function handleUnranked() {
+    router.push('/battle');
+  }
+
+  function handleRanked() {
+    router.push('/battle?mode=ranked');
   }
 
   return (

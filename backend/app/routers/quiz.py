@@ -1,5 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+import httpx
+from app.services.quiz_api import fetch_quizzes, fetch_questions_for_quiz
+from app.services.trivia_api import fetch_trivia_questions, TriviaCategory, TriviaDifficulty
 
 router = APIRouter(prefix="/quiz", tags=["quiz"])
 
@@ -94,6 +98,59 @@ class AnswerRequest(BaseModel):
 class AnswerResponse(BaseModel):
     correct: bool
     correct_answer: str
+
+
+@router.get(
+    "/external/quizzes",
+    responses={503: {"description": "QuizAPI unreachable"}},
+)
+def get_external_quizzes(limit: Annotated[int, Query(ge=1, le=50)] = 10):
+    try:
+        return fetch_quizzes(limit=limit)
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=503, detail=f"QuizAPI unreachable: {e}")
+
+
+@router.get(
+    "/external/quizzes/{quiz_id}/questions",
+    responses={404: {"description": "Quiz not found"}, 503: {"description": "QuizAPI unreachable"}},
+)
+def get_questions_for_quiz(quiz_id: str, limit: Annotated[int, Query(ge=1, le=20)] = 4):
+    # Quiz laden um die Kategorie zu ermitteln
+    try:
+        quizzes_result = fetch_quizzes(limit=50)
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=503, detail=f"QuizAPI unreachable: {e}")
+
+    quiz = next((q for q in quizzes_result.get("data", []) if q["id"] == quiz_id), None)
+    if not quiz:
+        raise HTTPException(status_code=404, detail=f"Quiz '{quiz_id}' not found")
+
+    try:
+        return fetch_questions_for_quiz(quiz_category=quiz["category"], limit=limit)
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=503, detail=f"QuizAPI unreachable: {e}")
+
+
+@router.get(
+    "/trivia/questions",
+    responses={503: {"description": "Trivia API unreachable"}},
+)
+def get_trivia_questions(
+    limit: Annotated[int, Query(ge=1, le=50)] = 10,
+    category: TriviaCategory | None = None,
+    difficulty: TriviaDifficulty | None = None,
+):
+    try:
+        return fetch_trivia_questions(limit=limit, category=category, difficulty=difficulty)
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=503, detail=f"Trivia API unreachable: {e}")
 
 
 @router.get("/practice/questions", response_model=list[QuestionResponse])

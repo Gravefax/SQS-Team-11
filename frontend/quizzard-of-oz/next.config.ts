@@ -12,6 +12,9 @@ if (!apiBase) {
 }
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   async rewrites() {
     return [
       {
