@@ -14,13 +14,17 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG BACKEND_URL=http://backend:8000
 ARG NEXT_PUBLIC_API_BASE=/api
+ARG GIT_COMMIT=unknown
 ENV BACKEND_URL=$BACKEND_URL
 ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
+ENV GIT_COMMIT=$GIT_COMMIT
 RUN pnpm build
 
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=$GIT_COMMIT
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs

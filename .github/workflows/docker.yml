@@ -60,6 +60,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
 
   frontend:
     name: Frontend Docker
@@ -109,3 +111,4 @@ jobs:
           build-args: |
             BACKEND_URL=http://backend:8000
             NEXT_PUBLIC_API_BASE=/api
+            GIT_COMMIT=${{ github.sha }}
