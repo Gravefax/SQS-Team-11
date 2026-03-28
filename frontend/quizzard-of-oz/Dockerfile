@@ -11,7 +11,9 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY app/ ./app/
+COPY public/ ./public/
+COPY next.config.ts tsconfig.json postcss.config.mjs ./
 ARG BACKEND_URL=http://backend:8000
 ARG NEXT_PUBLIC_API_BASE=/api
 ARG GIT_COMMIT=unknown
@@ -30,8 +32,10 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+RUN chown -R nextjs:nodejs ./ && chmod -R a-w ./
 
 USER nextjs
 EXPOSE 3000
