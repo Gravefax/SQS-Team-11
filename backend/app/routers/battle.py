@@ -22,10 +22,9 @@ class SelectCategoryRequest(BaseModel):
     category: str
 
 
-class SubmitAnswerRequest(BaseModel):
+class SubmitRoundRequest(BaseModel):
     player_id: str
-    question_id: str
-    answer: str
+    answers: dict[str, str]  # {question_id: selected_answer}
 
 
 class AdvanceRoundRequest(BaseModel):
@@ -81,16 +80,14 @@ def select_category(match_id: str, body: SelectCategoryRequest):
 
 
 @router.post(
-    "/{match_id}/answer",
-    responses={400: {"description": "Invalid answer submission"}},
+    "/{match_id}/submit-round",
+    responses={400: {"description": "Invalid submission"}},
 )
-def submit_answer(match_id: str, body: SubmitAnswerRequest):
+def submit_round(match_id: str, body: SubmitRoundRequest):
     if match_id not in battle_service._matches:
         raise HTTPException(status_code=404, detail="Match not found")
     try:
-        return battle_service.submit_answer(
-            match_id, body.player_id, body.question_id, body.answer
-        )
+        return battle_service.submit_round(match_id, body.player_id, body.answers)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -1,5 +1,4 @@
 # NOTE: In-memory state — nicht thread-safe (GIL reicht für Dev/Test)
-# Für Production: asyncio.Lock oder Redis verwenden
 import copy
 import random
 import uuid
@@ -22,8 +21,6 @@ CATEGORIES: dict[str, str] = {
 }
 CATEGORY_NAMES = list(CATEGORIES.keys())
 
-
-# ── Normalisierung ────────────────────────────────────────────────────────────
 
 def _normalize_trivia(raw: dict) -> dict:
     answers = raw["incorrectAnswers"] + [raw["correctAnswer"]]
@@ -51,7 +48,7 @@ def join_queue(nickname: str, mode: str) -> dict:
         _queue.remove(waiting)
         match = _create_match(
             {"player_id": waiting["player_id"], "nickname": waiting["nickname"]},
-            {"player_id": player_id,            "nickname": nickname},
+            {"player_id": player_id, "nickname": nickname},
             mode,
         )
         return {"player_id": player_id, "status": "matched", "match_id": match["id"]}
@@ -78,11 +75,10 @@ def check_queue_status(player_id: str) -> dict:
     return {"status": "not_found", "match_id": None}
 
 
-# ── Match erstellen ───────────────────────────────────────────────────────────
+# ── Match ─────────────────────────────────────────────────────────────────────
 
 def _create_match(p1: dict, p2: dict, mode: str) -> dict:
     match_id = str(uuid.uuid4())
-    picker = random.choice(["p1", "p2"])
     match = {
         "id": match_id,
         "mode": mode,
@@ -92,20 +88,20 @@ def _create_match(p1: dict, p2: dict, mode: str) -> dict:
             "p2": {"id": p2["player_id"], "nickname": p2["nickname"], "rounds_won": 0},
         },
         "current_round": 1,
-        "category_picker": picker,
+        "category_picker": random.choice(["p1", "p2"]),
         "category_options": random.sample(CATEGORY_NAMES, 3),
         "selected_category": None,
         "questions": [],
-        "current_question_index": 0,
-        "answers": {},
+        # round_answers: speichert alle Antworten eines Spielers auf einmal
+        # {"p1": {"q_id": "answer", ...} | None, "p2": ... | None}
+        "round_answers": {"p1": None, "p2": None},
         "round_results": [],
         "winner": None,
+        "api_calls": 0,
     }
     _matches[match_id] = match
     return match
 
-
-# ── Match state ───────────────────────────────────────────────────────────────
 
 def get_match_state(match_id: str, player_id: str) -> dict | None:
     match = _matches.get(match_id)
@@ -113,6 +109,8 @@ def get_match_state(match_id: str, player_id: str) -> dict | None:
         return None
     if not any(v["id"] == player_id for v in match["players"].values()):
         return None
+    match["api_calls"] += 1
+    print(f"[{match_id[:8]}] api_calls={match['api_calls']}")
     return _sanitize_state(match)
 
 
@@ -122,6 +120,9 @@ def _sanitize_state(match: dict) -> dict:
     for q in state["questions"]:
         if not reveal:
             q.pop("correct_answer", None)
+    state.pop("round_answers", None)
+    state.pop("_next_round", None)
+    state.pop("api_calls", None)  # nur intern
     return state
 
 
@@ -134,54 +135,54 @@ def select_category(match_id: str, player_id: str, category: str) -> dict:
         raise ValueError("Not your turn to pick")
     if category not in match["category_options"]:
         raise ValueError("Invalid category choice")
+    match["api_calls"] += 1
     match["selected_category"] = category
     match["questions"] = _load_questions(category, count=3)
-    match["current_question_index"] = 0
-    match["answers"] = {q["id"]: {"p1": None, "p2": None} for q in match["questions"]}
+    match["round_answers"] = {"p1": None, "p2": None}
     match["status"] = "in_round"
     return _sanitize_state(match)
 
 
-def submit_answer(match_id: str, player_id: str, question_id: str, answer: str) -> dict:
+def submit_round(match_id: str, player_id: str, answers: dict[str, str]) -> dict:
+    """Spieler reicht alle Antworten einer Runde auf einmal ein."""
     match = _matches[match_id]
-    player_key = next(
-        (k for k, v in match["players"].items() if v["id"] == player_id), None
-    )
+    if match["status"] != "in_round":
+        raise ValueError("Match is not in round")
+    match["api_calls"] += 1
+    player_key = next((k for k, v in match["players"].items() if v["id"] == player_id), None)
     if not player_key:
         raise ValueError("Player not in match")
-    if question_id not in match["answers"]:
-        raise ValueError("Unknown question_id")
-    # Verhindere Doppel-Antwort
-    if match["answers"][question_id][player_key] is not None:
-        raise ValueError("Already answered this question")
+    if match["round_answers"][player_key] is not None:
+        raise ValueError("Already submitted answers for this round")
 
-    match["answers"][question_id][player_key] = answer
+    match["round_answers"][player_key] = answers
 
-    # Fragen-Index vorantreiben (für UI-Hint, beide haben diese Frage beantwortet)
-    q_ids = [q["id"] for q in match["questions"]]
-    current_idx = match["current_question_index"]
-    if current_idx < len(q_ids):
-        current_q_id = q_ids[current_idx]
-        slot = match["answers"][current_q_id]
-        if slot["p1"] is not None and slot["p2"] is not None:
-            if current_idx + 1 < len(q_ids):
-                match["current_question_index"] = current_idx + 1
-
-    # Runde abschließen wenn alle 6 Antworten da
-    all_answered = all(
-        v["p1"] is not None and v["p2"] is not None
-        for v in match["answers"].values()
-    )
-    if all_answered:
+    # Beide eingereicht → Runde auflösen
+    if match["round_answers"]["p1"] is not None and match["round_answers"]["p2"] is not None:
         _resolve_round(match)
 
-    correct_answer = next(
-        q["correct_answer"] for q in match["questions"] if q["id"] == question_id
-    )
-    return {
-        "correct": answer == correct_answer,
-        "round_complete": match["status"] == "round_complete",
-    }
+    return _sanitize_state(match)
+
+
+def advance_to_next_round(match_id: str, player_id: str) -> dict:
+    match = _matches[match_id]
+    if match["status"] != "round_complete":
+        raise ValueError("Match is not in round_complete state")
+    match["api_calls"] += 1
+    if not any(v["id"] == player_id for v in match["players"].values()):
+        raise ValueError("Player not in match")
+    next_info = match.get("_next_round")
+    if not next_info:
+        raise ValueError("No next round info")
+    match["_next_round"] = None
+    match["current_round"] = next_info["round"]
+    match["category_picker"] = next_info["picker"]
+    match["category_options"] = random.sample(CATEGORY_NAMES, 3)
+    match["selected_category"] = None
+    match["questions"] = []
+    match["round_answers"] = {"p1": None, "p2": None}
+    match["status"] = "category_selection"
+    return _sanitize_state(match)
 
 
 # ── Rundenauflösung ───────────────────────────────────────────────────────────
@@ -190,7 +191,8 @@ def _resolve_round(match: dict) -> None:
     scores: dict[str, int] = {"p1": 0, "p2": 0}
     for q in match["questions"]:
         for pk in ("p1", "p2"):
-            if match["answers"][q["id"]][pk] == q["correct_answer"]:
+            player_answers = match["round_answers"].get(pk) or {}
+            if player_answers.get(q["id"]) == q["correct_answer"]:
                 scores[pk] += 1
 
     if scores["p1"] > scores["p2"]:
@@ -215,11 +217,8 @@ def _resolve_round(match: dict) -> None:
     if match["current_round"] >= 5:
         _finalize_match(match)
     else:
-        # Nächste Runde vorbereiten — Übergang beim nächsten "Continue"-Aufruf
-        match["_next_round"] = {
-            "round": match["current_round"] + 1,
-            "picker": "p2" if round_winner == "p1" else "p1" if round_winner == "p2" else random.choice(["p1", "p2"]),
-        }
+        next_picker = "p2" if round_winner == "p1" else "p1" if round_winner == "p2" else random.choice(["p1", "p2"])
+        match["_next_round"] = {"round": match["current_round"] + 1, "picker": next_picker}
 
 
 def _finalize_match(match: dict) -> None:
@@ -232,24 +231,9 @@ def _finalize_match(match: dict) -> None:
     else:
         match["winner"] = "draw"
     match["status"] = "match_complete"
-
-
-def advance_to_next_round(match_id: str, player_id: str) -> dict:
-    """Wird nach round_complete aufgerufen um zur nächsten Kategoriewahl zu wechseln."""
-    match = _matches[match_id]
-    if match["status"] != "round_complete":
-        raise ValueError("Match is not in round_complete state")
-    if not any(v["id"] == player_id for v in match["players"].values()):
-        raise ValueError("Player not in match")
-    next_info = match.pop("_next_round", None)
-    if not next_info:
-        raise ValueError("No next round info")
-    match["current_round"] = next_info["round"]
-    match["category_picker"] = next_info["picker"]
-    match["category_options"] = random.sample(CATEGORY_NAMES, 3)
-    match["selected_category"] = None
-    match["questions"] = []
-    match["current_question_index"] = 0
-    match["answers"] = {}
-    match["status"] = "category_selection"
-    return _sanitize_state(match)
+    p1 = match["players"]["p1"]["nickname"]
+    p2 = match["players"]["p2"]["nickname"]
+    print(
+        f"[{match['id'][:8]}] MATCH COMPLETE — {p1} vs {p2} | "
+        f"winner={match['winner']} | total api_calls={match['api_calls']}"
+    )

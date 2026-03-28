@@ -52,7 +52,4 @@ export interface QueueStatusResponse {
   match_id: string | null;
 }
 
-export interface AnswerResponse {
-  correct: boolean;
-  round_complete: boolean;
-}
+// submit-round returns the full match state (round_complete or in_round if waiting)

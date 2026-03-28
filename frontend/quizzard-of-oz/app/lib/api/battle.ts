@@ -3,7 +3,6 @@ import {
   JoinQueueResponse,
   QueueStatusResponse,
   MatchState,
-  AnswerResponse,
 } from '../interfaces/Battle';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
@@ -52,16 +51,14 @@ export async function selectCategory(
   return res.data;
 }
 
-export async function submitAnswer(
+export async function submitRound(
   matchId: string,
   playerId: string,
-  questionId: string,
-  answer: string
-): Promise<AnswerResponse> {
-  const res = await axios.post<AnswerResponse>(`${API_BASE}/battle/${matchId}/answer`, {
+  answers: Record<string, string>
+): Promise<MatchState> {
+  const res = await axios.post<MatchState>(`${API_BASE}/battle/${matchId}/submit-round`, {
     player_id: playerId,
-    question_id: questionId,
-    answer,
+    answers,
   });
   return res.data;
 }
