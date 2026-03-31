@@ -171,6 +171,7 @@ def test_login_creates_user_when_missing(monkeypatch, fixed_time):
 
 
 def test_refresh_missing_cookie():
+    client.cookies.clear()
     response = client.get("/auth/google/refresh")
     assert response.status_code == 401
     assert response.json()["detail"] == "Missing session"
