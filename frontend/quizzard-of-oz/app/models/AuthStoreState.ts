@@ -4,4 +4,5 @@ export default interface AuthStoreState {
     credential: AuthCredential | null;
     setCredential: (authCredential: AuthCredential | null) => void;
     getCredential: () => AuthCredential | null;
+    clearCredential: () => void;
 }
