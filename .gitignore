@@ -7,5 +7,6 @@ AGENTS.md
 .idea
 .docdeps/
 .venvdocs
+.coverage
 
 test-results/
