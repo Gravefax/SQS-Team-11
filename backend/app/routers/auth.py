@@ -70,7 +70,15 @@ def _get_valid_session(request: Request, db: Session):
     if not session:
         raise HTTPException(status_code=401, detail="Session not found")
 
-    if session.expires_at < datetime.now(timezone.utc):
+    expires_at = getattr(session, "expires_at", None)
+    if not isinstance(expires_at, datetime):
+        crud_session.delete_session(db, session_id)
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
         crud_session.delete_session(db, session_id)
         raise HTTPException(status_code=403, detail="Session expired")
 

@@ -8,5 +8,6 @@ AGENTS.md
 .docdeps/
 .venvdocs
 .coverage
+coverage.xml
 
 test-results/
