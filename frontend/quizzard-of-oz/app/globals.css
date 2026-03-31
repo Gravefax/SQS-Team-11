@@ -32,8 +32,8 @@
   --color-oz-violet-text: rgb(var(--oz-violet-text-rgb));
   --color-oz-gold: rgb(var(--oz-gold-rgb));
   --color-oz-surface-heading: var(--oz-surface-heading);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji");
+  --font-mono: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,7 +46,7 @@
 html,
 body {
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 body {

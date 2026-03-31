@@ -182,6 +182,7 @@ export default function LandingPage() {
         .glass-card {
           background: rgba(var(--oz-white-rgb), 0.03);
           backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           border: 1px solid rgba(var(--oz-violet-light-rgb), 0.18);
           transition: background 0.3s ease, border-color 0.3s ease,
                       transform 0.3s ease, box-shadow 0.3s ease;
