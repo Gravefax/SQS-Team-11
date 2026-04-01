@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from app.database import get_db
 from app.crud import session as crud_session
 from app.crud import user as crud_user
-from app.dtos.login_response import LoginResponse
+from app.schemas.login_response import LoginResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

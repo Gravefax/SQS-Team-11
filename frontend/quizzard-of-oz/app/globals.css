@@ -1,46 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #05080F;
+  --foreground: #C8E4FF;
 
-  --oz-gradient-start: #0d0221;
-  --oz-gradient-mid-1: #1a0545;
-  --oz-gradient-mid-2: #0f1e5c;
-  --oz-gradient-end: #0d0221;
+  /* ── Background gradient: space-black → deep navy ── */
+  --oz-gradient-start:  #05080F;
+  --oz-gradient-mid-1:  #080F1C;
+  --oz-gradient-mid-2:  #0A1525;
+  --oz-gradient-end:    #05080F;
 
-  --oz-menu-bg-rgb: 26, 5, 69;
-  --oz-violet-rgb: 139, 92, 246;
-  --oz-violet-light-rgb: 167, 139, 250;
-  --oz-violet-text-rgb: 196, 181, 253;
-  --oz-violet-shadow-rgb: 76, 29, 149;
+  /* ── Primary: Electric Cyan (quiz / play / energy) ── */
+  --oz-violet-rgb:        0, 170, 210;
+  --oz-violet-light-rgb:  0, 212, 255;
+  --oz-violet-text-rgb:   160, 215, 240;
+  --oz-violet-shadow-rgb: 0, 60, 100;
 
-  --oz-white-rgb: 255, 255, 255;
-  --oz-gold-rgb: 245, 158, 11;
-  --oz-gold-dark-rgb: 217, 119, 6;
-  --oz-gold-light-rgb: 253, 230, 138;
-  --oz-indigo-rgb: 99, 102, 241;
+  /* ── Battle: Fire Orange-Red (ranked / compete) ── */
+  --oz-fire-rgb:          255, 60, 20;
+  --oz-fire-light-rgb:    255, 110, 60;
+  --oz-fire-dim-rgb:      160, 28, 0;
 
-  --oz-surface-heading: #ede9fe;
+  /* ── Energy: Electric Yellow (stats / gold) ── */
+  --oz-gold-rgb:          255, 200, 0;
+  --oz-gold-dark-rgb:     210, 155, 0;
+  --oz-gold-light-rgb:    255, 232, 100;
+
+  /* ── Indigo slot repurposed → fire accent ── */
+  --oz-indigo-rgb:        255, 60, 20;
+
+  /* ── Win / correct ── */
+  --oz-win-rgb:           0, 255, 120;
+
+  /* ── Surfaces ── */
+  --oz-menu-bg-rgb:       8, 15, 28;
+  --oz-white-rgb:         200, 228, 255;
+  --oz-surface-heading:   #E0F4FF;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-oz-violet: rgb(var(--oz-violet-rgb));
-  --color-oz-violet-light: rgb(var(--oz-violet-light-rgb));
-  --color-oz-violet-text: rgb(var(--oz-violet-text-rgb));
-  --color-oz-gold: rgb(var(--oz-gold-rgb));
+  --color-background:        var(--background);
+  --color-foreground:        var(--foreground);
+  --color-oz-violet:         rgb(var(--oz-violet-rgb));
+  --color-oz-violet-light:   rgb(var(--oz-violet-light-rgb));
+  --color-oz-violet-text:    rgb(var(--oz-violet-text-rgb));
+  --color-oz-gold:           rgb(var(--oz-gold-rgb));
   --color-oz-surface-heading: var(--oz-surface-heading);
-  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji");
-  --font-mono: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: 'DM Sans', var(--font-geist-sans, ui-sans-serif), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono, ui-monospace), SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 html,
@@ -52,14 +60,14 @@ body {
 body {
   background: linear-gradient(
     135deg,
-    var(--oz-gradient-start) 0%,
+    var(--oz-gradient-start)  0%,
     var(--oz-gradient-mid-1) 40%,
     var(--oz-gradient-mid-2) 70%,
-    var(--oz-gradient-end) 100%
+    var(--oz-gradient-end)  100%
   );
   background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'DM Sans', Arial, Helvetica, sans-serif;
   cursor: default;
   user-select: none;
 }
@@ -69,13 +77,14 @@ button {
 }
 
 .login-btn {
-    background: rgba(var(--oz-violet-rgb), 0.18);
-    border: 1px solid rgba(var(--oz-violet-light-rgb), 0.35);
-    color: rgba(var(--oz-violet-text-rgb), 1);
-    transition: background 0.25s ease, border-color 0.25s ease;
+  background: rgba(var(--oz-violet-rgb), 0.15);
+  border: 1px solid rgba(var(--oz-violet-light-rgb), 0.3);
+  color: rgba(var(--oz-violet-text-rgb), 1);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .login-btn:hover {
-  background: rgba(var(--oz-violet-rgb), 0.38);
-  border-color: rgba(var(--oz-violet-light-rgb), 1);
+  background: rgba(var(--oz-violet-rgb), 0.32);
+  border-color: rgba(var(--oz-violet-light-rgb), 0.85);
+  box-shadow: 0 0 18px rgba(var(--oz-violet-light-rgb), 0.18);
 }
