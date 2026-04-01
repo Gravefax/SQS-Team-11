@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import quiz
-from app.routers import user, auth
+from app.routers import user, auth, battle
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,6 +19,7 @@ allow_credentials=True,
 app.include_router(user.router)
 app.include_router(auth.router)
 app.include_router(quiz.router)
+app.include_router(battle.router)
 
 
 @app.get("/")
