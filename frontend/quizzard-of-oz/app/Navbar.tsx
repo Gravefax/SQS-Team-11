@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import LoginButton from "@/app/components/login-button/LoginButton";
+import UserMenu from "@/app/components/user-menu/UserMenu";
 import useAuthStore from "@/app/stores/authStore";
 import { refreshAccessToken, logout } from "@/app/api/auth";
 
@@ -43,7 +44,7 @@ export default function Navbar() {
 
   return (
     <header
-      className="relative z-10 flex justify-between items-center px-8 py-6"
+      className="relative z-30 flex justify-between items-center px-8 py-6"
       style={{ borderBottom: "1px solid rgba(var(--oz-violet-light-rgb), 0.1)" }}
     >
       <div
@@ -56,12 +57,7 @@ export default function Navbar() {
         Quizzard of Oz
       </div>
       {isLoggedIn ? (
-        <button
-          onClick={handleLogout}
-          className="login-btn px-6 py-2 font-medium rounded-lg"
-        >
-          {displayName}
-        </button>
+        <UserMenu displayName={displayName} onLogout={handleLogout} />
       ) : (
         <div className="relative">
           <LoginButton />
