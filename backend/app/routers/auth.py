@@ -117,7 +117,11 @@ def login(
         user = crud_user.get_user_by_google_sub(db, payload["sub"])
 
         if not user:
-            username = payload["given_name"] + " " + payload["family_name"]
+            username = (
+                payload.get("name")
+                or (payload.get("given_name", "") + " " + payload.get("family_name", "")).strip()
+                or payload.get("email", "Unknown")
+            )
 
             user = crud_user.create_user(
                 db,

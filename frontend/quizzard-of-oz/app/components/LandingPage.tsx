@@ -38,16 +38,12 @@ const AMB_DATA: Array<{ id: string; char: string; size: string; top: string; lef
   { id: 'a-7', char: '⚔', size: '7rem',  top: '48%', left: '22%', type: 'fire', anim: 1, dur: 8,  delay: 0.3, opacity: 0.07 },
 ];
 
-function handleRanked() {
-  console.log('TODO: handleRanked');
-}
-
-function handleUnranked() {
-  console.log('TODO: handleUnranked');
-}
-
 export default function LandingPage() {
   const router = useRouter();
+
+  function handleRanked() {
+    router.push('/ranked-modus');
+  }
 
   function handleUebung() {
     router.push('/trainings-modus');
@@ -135,8 +131,8 @@ export default function LandingPage() {
 
         /* ── Title neon glow ── */
         @keyframes titleGlow {
-          0%,100% { text-shadow: 0 0 18px rgba(0,212,255,0.32), 0 0 38px rgba(0,212,255,0.14); }
-          50%     { text-shadow: 0 0 30px rgba(0,212,255,0.65), 0 0 60px rgba(0,212,255,0.28), 0 0 90px rgba(0,212,255,0.13); }
+          0%,100% { text-shadow: 0 0 14px rgba(0,212,255,0.14), 0 0 28px rgba(0,212,255,0.06); }
+          50%     { text-shadow: 0 0 20px rgba(0,212,255,0.26), 0 0 44px rgba(0,212,255,0.11), 0 0 70px rgba(0,212,255,0.05); }
         }
 
         /* ── Orb pulse ── */
@@ -328,7 +324,7 @@ export default function LandingPage() {
           {/* Title */}
           <div className="text-center mb-1">
             <h1 className="arena-title text-[5.5rem] md:text-[9rem]">
-              Quizard of Oz
+              Quizzard of Oz
             </h1>
             <span className="neon-line" style={{ width: '200px' }} />
             <p
@@ -372,44 +368,26 @@ export default function LandingPage() {
               </p>
             </button>
 
-            {/* UNRANKED + ÜBUNG */}
-            <div className="grid grid-cols-2 gap-4 w-full">
-              <button className="cyan-card px-6 py-4 text-center" onClick={handleUnranked}>
-                <div
-                  className="text-xl mb-1"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(0,212,255,0.55))' }}
-                >
-                  ⚡
-                </div>
+            {/* ÜBUNG */}
+            <button className="gold-card px-6 py-3 text-center w-full flex items-center justify-center gap-4" onClick={handleUebung}>
+              <div
+                className="text-xl"
+                style={{ filter: 'drop-shadow(0 0 10px rgba(255,200,0,0.55))' }}
+              >
+                🎯
+              </div>
+              <div className="text-left">
                 <h3
-                  className="text-sm font-semibold mb-0.5"
-                  style={{ color: 'rgba(160,215,240,0.9)' }}
-                >
-                  Unranked
-                </h3>
-                <p className="text-xs" style={{ color: 'rgba(140,200,230,0.45)' }}>
-                  Frei spielen
-                </p>
-              </button>
-
-              <button className="gold-card px-6 py-4 text-center" onClick={handleUebung}>
-                <div
-                  className="text-xl mb-1"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(255,200,0,0.55))' }}
-                >
-                  🎯
-                </div>
-                <h3
-                  className="text-sm font-semibold mb-0.5"
+                  className="text-sm font-semibold"
                   style={{ color: 'rgba(255,225,140,0.9)' }}
                 >
                   Übung
                 </h3>
                 <p className="text-xs" style={{ color: 'rgba(255,220,130,0.45)' }}>
-                  Trainingsmodus
+                  Trainingsmodus · Kein Login nötig
                 </p>
-              </button>
-            </div>
+              </div>
+            </button>
           </div>
         </main>
       </div>
