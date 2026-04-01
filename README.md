@@ -6,4 +6,5 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Gravefax_SQS-Team-11&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Gravefax_SQS-Team-11)
 
 
-https://sqs-team-11.readthedocs.io/en/latest/
+[readthedocs
+](https://quizzard-of-oz.readthedocs.io/en/latest/)
