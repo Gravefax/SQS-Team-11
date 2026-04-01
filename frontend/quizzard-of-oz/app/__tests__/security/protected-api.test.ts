@@ -4,9 +4,9 @@ import { NextRequest } from "next/server";
 
 const VALID_TOKEN = "secret-token";
 
-function makeRequest(authHeader?: string): NextRequest {
+function makeRequest(cookieHeader?: string): NextRequest {
   return new NextRequest("http://localhost/api/protected", {
-    headers: authHeader ? { authorization: authHeader } : {},
+    headers: cookieHeader ? { cookie: cookieHeader } : {},
   });
 }
 
@@ -15,23 +15,18 @@ describe("GET /api/protected — security", () => {
     process.env.API_SECRET = VALID_TOKEN;
   });
 
-  it("returns 401 when no Authorization header is provided", async () => {
+  it("returns 401 when no auth cookie is provided", async () => {
     const response = await GET(makeRequest());
     expect(response.status).toBe(401);
   });
 
   it("returns 401 for a wrong token", async () => {
-    const response = await GET(makeRequest("Bearer wrong-token"));
+    const response = await GET(makeRequest("access_token=wrong-token"));
     expect(response.status).toBe(401);
   });
 
-  it("returns 401 for a malformed Authorization header", async () => {
-    const response = await GET(makeRequest(VALID_TOKEN)); // missing "Bearer "
-    expect(response.status).toBe(401);
-  });
-
-  it("returns 200 with valid token", async () => {
-    const response = await GET(makeRequest(`Bearer ${VALID_TOKEN}`));
+  it("returns 200 with valid token cookie", async () => {
+    const response = await GET(makeRequest(`access_token=${VALID_TOKEN}`));
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body).toEqual({ data: "protected content" });

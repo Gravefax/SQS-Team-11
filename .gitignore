@@ -4,7 +4,10 @@ CLAUDE.md
 AGENTS.md
 .venv
 .env
+.idea
 .docdeps/
 .venvdocs
+.coverage
+coverage.xml
 
 test-results/

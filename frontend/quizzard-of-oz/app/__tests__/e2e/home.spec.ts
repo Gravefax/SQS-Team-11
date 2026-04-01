@@ -20,7 +20,10 @@ test.describe("Landing page", () => {
 
   test("navbar shows the login button", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("button", { name: "Login", exact: true })).toBeVisible();
+    const googleLogin = page.locator(
+      "iframe[title*='Google'], div[role='button'][aria-label*='Google']"
+    );
+    await expect(googleLogin).toHaveCount(1);
   });
 
   test("shows the subtitle", async ({ page }) => {

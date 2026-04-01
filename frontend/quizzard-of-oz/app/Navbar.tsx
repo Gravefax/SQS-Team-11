@@ -1,48 +1,67 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useEffect } from "react";
+import LoginButton from "@/app/components/login-button/LoginButton";
+import UserMenu from "@/app/components/user-menu/UserMenu";
+import useAuthStore from "@/app/stores/authStore";
+import { refreshAccessToken, logout } from "@/app/api/auth";
 
 export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const dummyUsername = "DummyUser";
+  const authStore = useAuthStore();
+  const credential = authStore.getCredential();
+  const isLoggedIn = !!credential;
+  const displayName = credential?.username ?? credential?.email ?? "User";
 
-  function handleLogin() {
-    // TODO: Implement real authentication
-    console.log("TODO: handleLogin");
-    setIsLoggedIn(true);
-  }
+  useEffect(() => {
+    let isMounted = true;
+    if (authStore.getCredential()) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    refreshAccessToken()
+      .then((res) => {
+        if (!isMounted) return;
+        authStore.setCredential({
+          email: res.email,
+          username: res.username ?? res.email,
+          expiresAt: res.expires_at,
+        });
+      })
+      .catch(() => {
+        /* Ignore missing/expired refresh token */
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authStore]);
 
   function handleLogout() {
-    // TODO: Implement real logout
-    console.log("TODO: handleLogout");
-    setIsLoggedIn(false);
+    logout().finally(() => authStore.clearCredential());
   }
 
   return (
     <header
-      className="relative z-10 flex justify-between items-center px-8 py-6"
-      style={{ borderBottom: '1px solid rgba(167, 139, 250, 0.1)' }}
+      className="relative z-30 flex justify-between items-center px-8 py-6"
+      style={{ borderBottom: "1px solid rgba(var(--oz-violet-light-rgb), 0.1)" }}
     >
       <div
         className="text-xl font-semibold tracking-widest uppercase"
-        style={{ color: 'rgba(196, 181, 253, 0.65)', letterSpacing: '0.22em' }}
+        style={{
+          color: "rgba(var(--oz-violet-text-rgb), 0.65)",
+          letterSpacing: "0.22em",
+        }}
       >
-        Quizard of Oz
+        Quizzard of Oz
       </div>
       {isLoggedIn ? (
-        <button
-          onClick={handleLogout}
-          className="login-btn px-6 py-2 font-medium rounded-lg"
-        >
-          {dummyUsername}
-        </button>
+        <UserMenu displayName={displayName} onLogout={handleLogout} />
       ) : (
-        <button
-          onClick={handleLogin}
-          className="login-btn px-6 py-2 font-medium rounded-lg"
-        >
-          Login
-        </button>
+        <div className="relative">
+          <LoginButton />
+        </div>
       )}
     </header>
   );
