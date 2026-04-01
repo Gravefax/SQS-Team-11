@@ -163,43 +163,55 @@ export default function LandingPage() {
 
         /* ── Button classes ── */
         .battle-btn {
-          background: linear-gradient(155deg, rgba(255,60,20,0.11) 0%, rgba(140,18,0,0.06) 100%);
-          border: 2px solid rgba(255,80,40,0.6);
+          background: linear-gradient(160deg, rgba(255,55,15,0.13) 0%, rgba(100,12,0,0.08) 60%, rgba(20,4,0,0.04) 100%);
+          border: 1px solid rgba(255,75,35,0.5);
           border-radius: 1.25rem;
-          transition: transform 0.2s ease, background 0.2s ease;
+          position: relative;
+          overflow: hidden;
           animation: battlePulse 2.8s ease-in-out infinite;
+          transition: transform 0.22s ease, background 0.22s ease;
+        }
+        .battle-btn::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,90,40,0.85) 30%, rgba(255,140,80,1) 50%, rgba(255,90,40,0.85) 70%, transparent 100%);
+        }
+        .battle-btn::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, rgba(255,70,30,0.07) 0%, transparent 45%);
+          border-radius: 1.25rem;
+          pointer-events: none;
         }
         .battle-btn:hover {
-          background: linear-gradient(155deg, rgba(255,60,20,0.24) 0%, rgba(180,30,5,0.15) 100%);
-          transform: translateY(-5px) scale(1.015);
-        }
-
-        .cyan-card {
-          background: rgba(0,212,255,0.04);
-          border: 1px solid rgba(0,212,255,0.2);
-          border-radius: 0.875rem;
-          transition: background 0.25s ease, border-color 0.25s ease,
-                      transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .cyan-card:hover {
-          background: rgba(0,212,255,0.1);
-          border-color: rgba(0,212,255,0.65);
-          transform: translateY(-5px);
-          box-shadow: 0 18px 42px rgba(0,212,255,0.14);
+          background: linear-gradient(160deg, rgba(255,55,15,0.22) 0%, rgba(140,20,5,0.14) 60%, rgba(40,6,0,0.07) 100%);
+          transform: translateY(-4px) scale(1.01);
         }
 
         .gold-card {
-          background: rgba(255,200,0,0.04);
-          border: 1px solid rgba(255,200,0,0.2);
-          border-radius: 0.875rem;
-          transition: background 0.25s ease, border-color 0.25s ease,
-                      transform 0.25s ease, box-shadow 0.25s ease;
+          background: linear-gradient(145deg, rgba(255,200,0,0.07) 0%, rgba(180,130,0,0.04) 100%);
+          border: 1px solid rgba(255,200,0,0.28);
+          border-radius: 1rem;
+          position: relative;
+          overflow: hidden;
+          transition: background 0.22s ease, border-color 0.22s ease,
+                      transform 0.22s ease, box-shadow 0.22s ease;
+        }
+        .gold-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(255,200,0,0.75), transparent);
         }
         .gold-card:hover {
-          background: rgba(255,200,0,0.1);
-          border-color: rgba(255,200,0,0.65);
-          transform: translateY(-5px);
-          box-shadow: 0 18px 42px rgba(255,200,0,0.11);
+          background: linear-gradient(145deg, rgba(255,200,0,0.13) 0%, rgba(200,150,0,0.08) 100%);
+          border-color: rgba(255,200,0,0.6);
+          transform: translateY(-3px);
+          box-shadow: 0 16px 40px rgba(255,200,0,0.1);
         }
 
         /* ── Typography ── */
@@ -340,52 +352,59 @@ export default function LandingPage() {
 
             {/* RANKED BATTLE — fire CTA */}
             <button
-              className="battle-btn px-16 py-5 text-center w-full"
+              className="battle-btn w-full text-center"
+              style={{ padding: '22px 24px 20px' }}
               onClick={handleRanked}
             >
-              <div
-                className="text-3xl mb-2"
-                style={{ filter: 'drop-shadow(0 0 14px rgba(255,80,40,0.7))' }}
-              >
+              {/* Icon circle */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', borderRadius: '50%', background: 'rgba(255,60,20,0.14)', border: '1px solid rgba(255,90,50,0.4)', marginBottom: '12px', fontSize: '1.4rem', filter: 'drop-shadow(0 0 14px rgba(255,80,40,0.65))' }}>
                 ⚔
               </div>
-              <h3
-                className="font-black mb-1 tracking-widest uppercase"
+              {/* Title */}
+              <div
                 style={{
                   fontFamily: "'Bebas Neue', Impact, 'Arial Black', sans-serif",
-                  fontSize: '1.6rem',
-                  letterSpacing: '0.14em',
-                  color: '#FFCDB0',
+                  fontSize: '1.75rem',
+                  letterSpacing: '0.16em',
+                  color: '#FFD0B0',
+                  lineHeight: 1,
+                  marginBottom: '6px',
                 }}
               >
                 Ranked Battle
-              </h3>
-              <p
-                className="text-xs"
-                style={{ color: 'rgba(255,160,110,0.6)', letterSpacing: '0.05em' }}
-              >
-                Compete · Rank · Dominate · Login erforderlich
-              </p>
+              </div>
+              {/* Tagline */}
+              <div style={{ color: 'rgba(255,170,120,0.58)', fontSize: '0.7rem', letterSpacing: '0.12em', marginBottom: '14px' }}>
+                COMPETE · RANK · DOMINATE
+              </div>
+              {/* Login badge */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(255,60,20,0.1)', border: '1px solid rgba(255,80,40,0.3)', color: 'rgba(255,160,110,0.6)', fontSize: '0.65rem', letterSpacing: '0.1em' }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,100,50,0.7)', display: 'inline-block' }} />{"Login erforderlich"}
+              </div>
             </button>
 
             {/* ÜBUNG */}
-            <button className="gold-card px-6 py-3 text-center w-full flex items-center justify-center gap-4" onClick={handleUebung}>
-              <div
-                className="text-xl"
-                style={{ filter: 'drop-shadow(0 0 10px rgba(255,200,0,0.55))' }}
-              >
-                🎯
-              </div>
-              <div className="text-left">
-                <h3
-                  className="text-sm font-semibold"
-                  style={{ color: 'rgba(255,225,140,0.9)' }}
-                >
-                  Übung
-                </h3>
-                <p className="text-xs" style={{ color: 'rgba(255,220,130,0.45)' }}>
-                  Trainingsmodus · Kein Login nötig
-                </p>
+            <button
+              className="gold-card w-full"
+              style={{ padding: '14px 20px' }}
+              onClick={handleUebung}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                {/* Icon circle */}
+                <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '42px', height: '42px', borderRadius: '50%', background: 'rgba(255,200,0,0.1)', border: '1px solid rgba(255,200,0,0.3)', fontSize: '1.1rem', filter: 'drop-shadow(0 0 10px rgba(255,200,0,0.45))' }}>
+                  🎯
+                </div>
+                {/* Text */}
+                <div style={{ textAlign: 'left', flex: 1 }}>
+                  <div style={{ color: 'rgba(255,228,140,0.92)', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '2px' }}>
+                    Übung
+                  </div>
+                  <div style={{ color: 'rgba(255,215,120,0.42)', fontSize: '0.7rem', letterSpacing: '0.08em' }}>
+                    Trainingsmodus · Kein Login nötig
+                  </div>
+                </div>
+                {/* Arrow */}
+                <div style={{ flexShrink: 0, color: 'rgba(255,200,0,0.35)', fontSize: '1rem' }}>›</div>
               </div>
             </button>
           </div>

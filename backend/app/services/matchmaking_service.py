@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.services.ws_auth import authenticate_ws
+
+ALLOW_DUPLICATE_QUEUE = os.getenv("ALLOW_DUPLICATE_QUEUE", "false").lower() in ("true", "1", "t")
 
 _CLOSE_DUPLICATE = 4005
 
@@ -44,7 +47,7 @@ class MatchmakingService:
         matched_pair: tuple[dict, dict] | None = None
 
         async with self._lock:
-            if any(p["user"].id == user.id for p in self._queue):
+            if not ALLOW_DUPLICATE_QUEUE and any(p["user"].id == user.id for p in self._queue):
                 await websocket.close(code=_CLOSE_DUPLICATE, reason="Already in queue")
                 return
 
