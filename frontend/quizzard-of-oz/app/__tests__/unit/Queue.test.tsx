@@ -9,21 +9,36 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-let socketInstances: any[] = [];
+type MockMessageEvent = Pick<MessageEvent, "data">;
+type MockCloseEvent = Pick<CloseEvent, "code">;
+type MockErrorEvent = Pick<Event, "type">;
+
+type MockWebSocketInstance = {
+  send: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
+  onmessage: ((event: MockMessageEvent) => void) | null;
+  onclose: ((event: MockCloseEvent) => void) | null;
+  onerror: ((event: MockErrorEvent) => void) | null;
+};
+
+let socketInstances: MockWebSocketInstance[] = [];
 
 beforeEach(() => {
   socketInstances = [];
-  (globalThis.WebSocket as any) = class MockWebSocket {
+  const MockWebSocket = class {
     send = vi.fn();
     close = vi.fn();
-    onmessage: ((event: MessageEvent) => void) | null = null;
-    onclose: ((event: CloseEvent) => void) | null = null;
-    onerror: ((event: Event) => void) | null = null;
+    onmessage: ((event: MockMessageEvent) => void) | null = null;
+    onclose: ((event: MockCloseEvent) => void) | null = null;
+    onerror: ((event: MockErrorEvent) => void) | null = null;
 
-    constructor(_url: string) {
+    constructor() {
       socketInstances.push(this);
     }
   };
+
+  (globalThis as unknown as { WebSocket: typeof WebSocket }).WebSocket =
+    MockWebSocket as unknown as typeof WebSocket;
   mockPush.mockClear();
 });
 

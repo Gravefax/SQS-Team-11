@@ -9,21 +9,45 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-let mockWebSocket: any;
+type MockMessageEvent = Pick<MessageEvent, "data">;
+type MockCloseEvent = Pick<CloseEvent, "code">;
+type MockErrorEvent = Pick<Event, "type">;
+
+type MockWebSocketInstance = {
+  send: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
+  onmessage: ((event: MockMessageEvent) => void) | null;
+  onclose: ((event: MockCloseEvent) => void) | null;
+  onerror: ((event: MockErrorEvent) => void) | null;
+};
+
+type MockWebSocketClass = {
+  new (url: string): MockWebSocketInstance;
+  readonly instance: {
+    current: MockWebSocketInstance | null;
+  };
+};
+
+let mockWebSocket!: MockWebSocketInstance;
+let mockWebSocketClass: MockWebSocketClass;
 
 beforeEach(() => {
-  (globalThis.WebSocket as any) = class MWS {
-    private static instance: MWS | null = null;
+  mockWebSocketClass = class MWS {
+    static readonly instance = { current: null as MockWebSocketInstance | null };
     send = vi.fn();
     close = vi.fn();
-    onmessage = null;
-    onclose = null;
-    onerror = null;
-    constructor(_url: string) {
-      MWS.instance = this;
+    onmessage: ((event: MockMessageEvent) => void) | null = null;
+    onclose: ((event: MockCloseEvent) => void) | null = null;
+    onerror: ((event: MockErrorEvent) => void) | null = null;
+    constructor() {
+      MWS.instance.current = this;
     }
   };
-  mockWebSocket = null;
+
+  (globalThis as unknown as { WebSocket: typeof WebSocket }).WebSocket =
+    mockWebSocketClass as unknown as typeof WebSocket;
+
+  mockWebSocket = undefined as unknown as MockWebSocketInstance;
   mockPush.mockClear();
 });
 
@@ -33,7 +57,7 @@ afterEach(() => {
 
 const renderArena = (matchId: string) => {
   render(<BattleArena matchId={matchId} />);
-  mockWebSocket = (globalThis.WebSocket as any).instance;
+  mockWebSocket = mockWebSocketClass.instance.current as MockWebSocketInstance;
 };
 
 describe("BattleArena Component Tests", () => {
@@ -45,7 +69,7 @@ describe("BattleArena Component Tests", () => {
   it("shows category buttons after pick_category message", async () => {
     renderArena("match-123");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -55,7 +79,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "pick_category",
         categories: ["Science", "History"],
@@ -74,7 +98,7 @@ describe("BattleArena Component Tests", () => {
   it("shows question with category in question phase", async () => {
     renderArena("match-123");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -84,7 +108,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "question",
         question_number: 1,
@@ -105,7 +129,7 @@ describe("BattleArena Component Tests", () => {
   it("shows game over state", async () => {
     renderArena("match-123");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -115,7 +139,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "game_over",
         winner: "Alice",
@@ -134,7 +158,7 @@ describe("BattleArena Component Tests", () => {
   it("shows waiting for opponent state", async () => {
     renderArena("match-234");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({ type: "waiting_for_opponent" }),
     });
 
@@ -146,7 +170,7 @@ describe("BattleArena Component Tests", () => {
   it("shows waiting for category state", async () => {
     renderArena("match-345");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -156,7 +180,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "waiting_for_category",
         round: 1,
@@ -175,7 +199,7 @@ describe("BattleArena Component Tests", () => {
   it("shows chosen category state", async () => {
     renderArena("match-456");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "category_chosen",
         category: "Science",
@@ -192,7 +216,7 @@ describe("BattleArena Component Tests", () => {
     const user = userEvent.setup();
     renderArena("match-567");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -202,7 +226,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "pick_category",
         categories: ["Science"],
@@ -222,7 +246,7 @@ describe("BattleArena Component Tests", () => {
   it("shows answered state after answer_result", async () => {
     renderArena("match-678");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -232,7 +256,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "question",
         question_number: 1,
@@ -244,7 +268,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "answer_result",
         correct: true,
@@ -261,7 +285,7 @@ describe("BattleArena Component Tests", () => {
   it("shows round_result and next picker", async () => {
     renderArena("match-789");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "match_ready",
         your_username: "Alice",
@@ -271,7 +295,7 @@ describe("BattleArena Component Tests", () => {
       }),
     });
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({
         type: "round_result",
         round: 1,
@@ -307,7 +331,7 @@ describe("BattleArena Component Tests", () => {
   it("shows error state for auth close", async () => {
     renderArena("match-901");
 
-    mockWebSocket.onclose({ code: 4001 });
+    mockWebSocket.onclose?.({ code: 4001 });
 
     await waitFor(() => {
       expect(screen.getByText(/verbindungsfehler/i)).toBeInTheDocument();

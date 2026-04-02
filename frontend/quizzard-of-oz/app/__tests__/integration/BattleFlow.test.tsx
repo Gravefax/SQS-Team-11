@@ -6,21 +6,40 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-let mockWebSocket: any;
+type MockMessageEvent = Pick<MessageEvent, "data">;
+type MockCloseEvent = Pick<CloseEvent, "code">;
+
+type MockWebSocketInstance = {
+  send: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
+  onmessage: ((event: MockMessageEvent) => void) | null;
+  onclose: ((event: MockCloseEvent) => void) | null;
+};
+
+type MockWebSocketClass = {
+  new (url: string): MockWebSocketInstance;
+  instance: MockWebSocketInstance | null;
+};
+
+let mockWebSocket!: MockWebSocketInstance;
+let mockWebSocketClass: MockWebSocketClass;
 
 beforeEach(() => {
-  (globalThis.WebSocket as any) = class MockWebSocket {
-    private static instance: MockWebSocket | null = null;
+  mockWebSocketClass = class MockWebSocket {
+    private static instance: MockWebSocketInstance | null = null;
     send = vi.fn();
     close = vi.fn();
-    onmessage: ((event: MessageEvent) => void) | null = null;
-    onclose: ((event: CloseEvent) => void) | null = null;
-    constructor(_url: string) {
+    onmessage: ((event: MockMessageEvent) => void) | null = null;
+    onclose: ((event: MockCloseEvent) => void) | null = null;
+    constructor() {
       MockWebSocket.instance = this;
     }
   };
 
-  mockWebSocket = null;
+  (globalThis as unknown as { WebSocket: typeof WebSocket }).WebSocket =
+    mockWebSocketClass as unknown as typeof WebSocket;
+
+  mockWebSocket = undefined as unknown as MockWebSocketInstance;
 });
 
 afterEach(() => {
@@ -30,7 +49,7 @@ afterEach(() => {
 describe("Battle flow integration", () => {
   it("progresses to question phase with valid payload", async () => {
     render(<BattleArena matchId="flow-1" />);
-    mockWebSocket = (globalThis.WebSocket as any).instance;
+    mockWebSocket = mockWebSocketClass.instance as MockWebSocketInstance;
 
     mockWebSocket.onmessage?.({
       data: JSON.stringify({
@@ -72,7 +91,7 @@ describe("Battle flow integration", () => {
 
   it("shows game over victory screen", async () => {
     render(<BattleArena matchId="flow-2" />);
-    mockWebSocket = (globalThis.WebSocket as any).instance;
+    mockWebSocket = mockWebSocketClass.instance as MockWebSocketInstance;
 
     mockWebSocket.onmessage?.({
       data: JSON.stringify({
