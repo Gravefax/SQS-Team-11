@@ -13,7 +13,7 @@ let socketInstances: any[] = [];
 
 beforeEach(() => {
   socketInstances = [];
-  (global.WebSocket as any) = class MockWebSocket {
+  (globalThis.WebSocket as any) = class MockWebSocket {
     send = vi.fn();
     close = vi.fn();
     onmessage: ((event: MessageEvent) => void) | null = null;

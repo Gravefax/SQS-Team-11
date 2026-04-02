@@ -9,15 +9,18 @@ vi.mock("next/navigation", () => ({
 let mockWebSocket: any;
 
 beforeEach(() => {
-  (global.WebSocket as any) = class MockWebSocket {
+  (globalThis.WebSocket as any) = class MockWebSocket {
+    private static instance: MockWebSocket | null = null;
+    send = vi.fn();
+    close = vi.fn();
     onmessage: ((event: MessageEvent) => void) | null = null;
     onclose: ((event: CloseEvent) => void) | null = null;
-    send() {}
-    close() {}
     constructor(_url: string) {
-      mockWebSocket = this;
+      MockWebSocket.instance = this;
     }
   };
+
+  mockWebSocket = null;
 });
 
 afterEach(() => {
@@ -27,6 +30,7 @@ afterEach(() => {
 describe("Battle flow integration", () => {
   it("progresses to question phase with valid payload", async () => {
     render(<BattleArena matchId="flow-1" />);
+    mockWebSocket = (globalThis.WebSocket as any).instance;
 
     mockWebSocket.onmessage?.({
       data: JSON.stringify({
@@ -68,6 +72,7 @@ describe("Battle flow integration", () => {
 
   it("shows game over victory screen", async () => {
     render(<BattleArena matchId="flow-2" />);
+    mockWebSocket = (globalThis.WebSocket as any).instance;
 
     mockWebSocket.onmessage?.({
       data: JSON.stringify({

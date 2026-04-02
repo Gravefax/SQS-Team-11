@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import RankedPage from "@/app/ranked-modus/page";
 
 const mockPush = vi.fn();
@@ -9,8 +8,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+let mockCredential: unknown = null;
+
 vi.mock("@/app/stores/authStore", () => ({
-  default: () => null,
+  default: (selector: (state: { credential: unknown }) => unknown) =>
+    selector({ credential: mockCredential }),
 }));
 
 vi.mock("@/app/components/Queue", () => ({
@@ -24,7 +26,16 @@ vi.mock("@/app/components/login-button/LoginButton", () => ({
 }));
 
 describe("RankedPage Tests", () => {
+  it("renders queue when authenticated", () => {
+    mockCredential = { token: "abc" };
+    render(<RankedPage />);
+    expect(screen.getByTestId("queue")).toBeInTheDocument();
+    expect(screen.getByText(/ranked=true/i)).toBeInTheDocument();
+    mockCredential = null;
+  });
+
   it("renders the page", () => {
+    mockCredential = null;
     render(<RankedPage />);
     expect(screen.getByTestId("login-btn")).toBeInTheDocument();
   });
