@@ -1,4 +1,4 @@
-import BattleArena from '@/app/components/BattleArena';
+import BattleArena from '@/app/components/battle/BattleArena';
 
 export default async function BattlePage({
   params,

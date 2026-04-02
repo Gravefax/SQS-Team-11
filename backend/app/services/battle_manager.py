@@ -1,3 +1,117 @@
+"""
+Battle Match Manager Service
+
+Orchestrates the full lifecycle of ranked battle matches between two players.
+Maintains match state, enforces game rules, handles WebSocket message routing,
+and manages phase transitions from game start to completion.
+
+Key Concepts:
+  - Match: A complete game between two players (best-of-5 rounds)
+  - Round: A single question set with a selected category (3 questions)
+  - Phase: Current game state (waiting, picking, questions, finished)
+  - Picker: The player who selects the category for the current round
+
+Concurrency Model:
+  Each MatchState has an asyncio.Lock to ensure thread-safe access to
+  shared game state. All state mutations occur inside "async with state.lock",
+  protecting concurrent player actions (e.g., both submitting answers simultaneously).
+
+WebSocket Close Codes:
+  - 4004 (Full): Match capacity reached (2 players already connected)
+  - 4005 (Duplicate): Same user attempting to connect twice to the match
+
+Match Flow (State Machine):
+  1. connect() called by player 1
+     → Phase: "waiting", send "waiting_for_opponent"
+  2. connect() called by player 2
+     → Trigger _start_game(), pick random first picker
+  3. _start_game() sends "match_ready" to both
+     → Trigger _start_round()
+  4. _start_round() sends categories to picker, "waiting_for_category" to non-picker
+     → Phase: "picking"
+  5. picker chooses category → _handle_category_pick()
+     → Phase: "questions", send "category_chosen", first question
+  6. both players answer 3 questions (question → answer_result → next question)
+  7. After 3 questions → _end_round()
+     → Determine round winner, update round_wins, send "round_result"
+  8. If a player reached ROUNDS_TO_WIN (3) → _end_game()
+     → Otherwise loop to step 4 with next round
+
+Message Protocol:
+
+  INCOMING (client → server):
+    {
+      "type": "pick_category",
+      "category": "Science"
+    }
+    {
+      "type": "answer",
+      "question_id": "<uuid>",
+      "answer": "B"
+    }
+
+  OUTGOING (server → client):
+    waiting_for_opponent: {}
+    match_ready: {
+      "your_username": str,
+      "opponent_username": str,
+      "you_pick_first": bool,
+      "rounds_to_win": int
+    }
+    pick_category: {
+      "categories": [str, ...],
+      "round": int,
+      "your_wins": int,
+      "opponent_wins": int
+    }
+    waiting_for_category: {
+      "picker_username": str,
+      "round": int,
+      "your_wins": int,
+      "opponent_wins": int
+    }
+    category_chosen: {
+      "category": str,
+      "round": int
+    }
+    question: {
+      "question_number": int,
+      "total_questions": int,
+      "question_id": str,
+      "text": str,
+      "answers": [str, ...],
+      "category": str
+    }
+    answer_result: {
+      "correct": bool,
+      "correct_answer": str,
+      "your_score_this_round": int
+    }
+    round_result: {
+      "round": int,
+      "outcome": "win" | "loss" | "tie",
+      "your_score": int,
+      "opponent_score": int,
+      "your_total_wins": int,
+      "opponent_total_wins": int,
+      "next_picker": str,
+      "game_over": bool
+    }
+    game_over: {
+      "winner": str,
+      "you_won": bool,
+      "your_wins": int,
+      "opponent_wins": int
+    }
+    opponent_disconnected: {
+      "username": str
+    }
+
+Logging:
+  All significant events are logged with match_id, user_id, username, and
+  client IP for post-match debugging. Use: tail -f logs/uvicorn.error.log
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,12 +127,14 @@ from app.models.user import User
 from app.services.ws_auth import authenticate_ws
 from app.services.quiz_service import QuizService, InternalQuizProvider, Question
 
-_CLOSE_FULL      = 4004
-_CLOSE_DUPLICATE = 4005
+# WebSocket close codes for match-specific errors
+_CLOSE_FULL      = 4004  # Second player cannot join; match is full
+_CLOSE_DUPLICATE = 4005  # Same user attempting reconnection to active match
 
-QUESTIONS_PER_ROUND  = 3
-ROUNDS_TO_WIN        = 3   # best-of-5 → first to 3 wins
-CATEGORIES_TO_OFFER  = 3
+# Game configuration constants
+QUESTIONS_PER_ROUND  = 3  # Questions per round (both players answer)
+ROUNDS_TO_WIN        = 3  # Best-of-5 format: first player to 3 round wins
+CATEGORIES_TO_OFFER  = 3  # Number of categories the picker can choose from
 
 _quiz = QuizService(InternalQuizProvider())
 logger = logging.getLogger("uvicorn.error")
@@ -26,31 +142,21 @@ logger = logging.getLogger("uvicorn.error")
 
 @dataclass
 class MatchState:
-    players:         list[dict]     = field(default_factory=list)   # {"ws", "user"}
-    round_wins:      dict[str, int] = field(default_factory=dict)   # user_id → wins
-    current_round:   int            = 0
-    picker_idx:      int            = 0   # index into players who picks this round
-    phase:           str            = "waiting"  # waiting|picking|questions|finished
-    round_questions: list[Question] = field(default_factory=list)
-    question_idx:    int            = 0
-    round_scores:    dict[str, int] = field(default_factory=dict)   # user_id → correct
-    current_answers: dict[str, str] = field(default_factory=dict)   # user_id → answer
-    lock:            asyncio.Lock   = field(default_factory=asyncio.Lock)
+    """Game state for one match. Protect mutations with state.lock."""
+    players:         list[dict]     = field(default_factory=list)   # [{"ws": WebSocket, "user": User}, ...]
+    round_wins:      dict[str, int] = field(default_factory=dict)   # user_id (str) → round wins (0-3)
+    current_round:   int            = 0                              # Round number (1-5)
+    picker_idx:      int            = 0                              # Index: which player picks category (0 or 1)
+    phase:           str            = "waiting"                      # Game phase: waiting|picking|questions|finished
+    round_questions: list[Question] = field(default_factory=list)   # Questions for current round (length 3)
+    question_idx:    int            = 0                              # Current question index (0-2)
+    round_scores:    dict[str, int] = field(default_factory=dict)   # user_id (str) → correct answers this round (0-3)
+    current_answers: dict[str, str] = field(default_factory=dict)   # user_id (str) → answer letter (A/B/C/D)
+    lock:            asyncio.Lock   = field(default_factory=asyncio.Lock)  # Protects all mutations
 
 
 class BattleManager:
-    """
-    Manages the full lifecycle of a ranked battle match.
-
-    Game flow per round:
-      1. Randomly chosen picker receives CATEGORIES_TO_OFFER category choices.
-      2. Picker selects one; both players are notified.
-      3. QUESTIONS_PER_ROUND questions are sent one by one.
-         Both players answer independently; each gets immediate feedback.
-      4. After all questions the round is scored.
-         The player with *fewer* correct answers picks next round (tie → same picker).
-      5. First to ROUNDS_TO_WIN rounds wins the match.
-    """
+    """Orchestrates full match lifecycle: auth, connections, phases, scoring."""
 
     def __init__(self) -> None:
         self._matches: dict[str, MatchState] = {}
@@ -58,11 +164,13 @@ class BattleManager:
     # ── Authentication ───────────────────────────────────────────────────── #
 
     async def authenticate(self, websocket: WebSocket, db: Session) -> User | None:
+        """Validate session and return user or None (closes socket on fail)."""
         return await authenticate_ws(websocket, db)
 
     # ── Connection management ────────────────────────────────────────────── #
 
     async def connect(self, websocket: WebSocket, match_id: str, user: User) -> bool:
+        """Add player to match. Returns False if full or already connected."""
         state = self._matches.setdefault(match_id, MatchState())
 
         logger.info(
@@ -112,6 +220,7 @@ class BattleManager:
         return True
 
     async def disconnect(self, websocket: WebSocket, match_id: str, user: User) -> None:
+        """Remove player from match and notify opponent. Delete if empty."""
         state = self._matches.get(match_id)
         if not state:
             logger.info(
@@ -147,6 +256,7 @@ class BattleManager:
     # ── Incoming client messages ─────────────────────────────────────────── #
 
     async def handle_message(self, match_id: str, user: User, raw: str) -> None:
+        """Parse JSON and route to handler (pick_category or answer)."""
         state = self._matches.get(match_id)
         if not state:
             logger.warning(
@@ -186,6 +296,7 @@ class BattleManager:
     # ── Game flow ────────────────────────────────────────────────────────── #
 
     async def _start_game(self, state: MatchState) -> None:
+        """Pick random first picker and send match_ready to both players."""
         state.picker_idx    = random.randint(0, 1)
         state.current_round = 1
 
@@ -209,6 +320,7 @@ class BattleManager:
         await self._start_round(state)
 
     async def _start_round(self, state: MatchState) -> None:
+        """Reset round, sample categories, and send to picker and non-picker."""
         state.phase           = "picking"
         state.round_scores    = {str(p["user"].id): 0 for p in state.players}
         state.question_idx    = 0
@@ -250,6 +362,7 @@ class BattleManager:
         })
 
     async def _handle_category_pick(self, state: MatchState, user: User, data: dict) -> None:
+        """Validate picker, load questions for category, send to both players."""
         async with state.lock:
             if state.phase != "picking":
                 logger.warning(
@@ -298,6 +411,7 @@ class BattleManager:
         await self._send_current_question(state)
 
     async def _send_current_question(self, state: MatchState) -> None:
+        """Clear current_answers and send the current question to both players."""
         q                    = state.round_questions[state.question_idx]
         state.current_answers = {}
 
@@ -323,6 +437,7 @@ class BattleManager:
     async def _handle_answer(
         self, match_id: str, state: MatchState, user: User, data: dict
     ) -> None:
+        """Validate answer, check correctness, increment score, advance if both answered."""
         uid    = str(user.id)
         q_id   = data.get("question_id", "")
         answer = data.get("answer", "")
@@ -395,6 +510,7 @@ class BattleManager:
                 await self._send_current_question(state)
 
     async def _end_round(self, match_id: str, state: MatchState) -> None:
+        """Determine round winner, update wins, send result, or start next round."""
         p1, p2 = state.players
         id1    = str(p1["user"].id)
         id2    = str(p2["user"].id)
@@ -460,6 +576,7 @@ class BattleManager:
             await self._start_round(state)
 
     async def _end_game(self, match_id: str, state: MatchState) -> None:
+        """Send game_over to both players and delete match from memory."""
         state.phase = "finished"
         p1, p2      = state.players
         id1         = str(p1["user"].id)
