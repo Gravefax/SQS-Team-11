@@ -162,13 +162,7 @@ class TestMatchmakingService:
         user = _make_user()
         
         # Set up immediate disconnect
-        disconnect_count = [0]
-        async def receive_with_count():
-            disconnect_count[0] += 1
-            if disconnect_count[0] > 0:
-                raise WebSocketDisconnect(code=1000)
-        
-        ws.receive_text.side_effect = receive_with_count
+        ws.receive_text.side_effect = WebSocketDisconnect(code=1000)
         
         await service.join(ws, user)
         

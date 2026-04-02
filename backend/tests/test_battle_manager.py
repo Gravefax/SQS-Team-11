@@ -287,7 +287,7 @@ async def test_start_game_randomizes_picker():
     ws2 = _make_websocket()
     user1 = _make_user(username="Player1")
     user2 = _make_user(username="Player2")
-    match_id = str(uuid4())
+
     
     state = MatchState()
     state.players = [{"ws": ws1, "user": user1}, {"ws": ws2, "user": user2}]

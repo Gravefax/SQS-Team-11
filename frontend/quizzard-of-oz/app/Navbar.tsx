@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import LoginButton from "@/app/components/login-button/LoginButton";
 import UserMenu from "@/app/components/user-menu/UserMenu";
 import useAuthStore from "@/app/stores/authStore";
@@ -47,7 +48,7 @@ export default function Navbar() {
       className="relative z-30 flex justify-between items-center px-8 py-6"
       style={{ borderBottom: "1px solid rgba(var(--oz-violet-light-rgb), 0.1)" }}
     >
-      <a
+      <Link
         href="/"
         className="text-xl font-semibold tracking-widest uppercase"
         style={{
@@ -55,12 +56,13 @@ export default function Navbar() {
           letterSpacing: "0.22em",
           textDecoration: "none",
           transition: "color 0.2s ease",
+          display: "inline-block",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(var(--oz-violet-text-rgb), 1)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(var(--oz-violet-text-rgb), 0.65)")}
       >
         Quizzard of Oz
-      </a>
+      </Link>
       {isLoggedIn ? (
         <UserMenu displayName={displayName} onLogout={handleLogout} />
       ) : (
