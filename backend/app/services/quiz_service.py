@@ -4,6 +4,7 @@ import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+#TODO Hier die richtige API Implemntieren
 
 @dataclass(frozen=True)
 class Question:
