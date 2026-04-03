@@ -293,7 +293,7 @@ async def test_start_game_randomizes_picker():
     state.players = [{"ws": ws1, "user": user1}, {"ws": ws2, "user": user2}]
     
     with patch.object(manager, "_start_round", new_callable=AsyncMock):
-        with patch("app.services.battle_manager.random.randint", return_value=0):
+        with patch("app.services.battle_manager.secrets.randbelow", return_value=0):
             await manager._start_game(state)
             
             assert state.current_round == 1
@@ -320,7 +320,7 @@ async def test_start_round_resets_scores():
     state.round_scores = {"old": 123}
     state.question_idx = 99
     
-    with patch("app.services.battle_manager.random.sample", return_value=["Science", "History", "Sports"]):
+    with patch("app.services.battle_manager._secure_rng.sample", return_value=["Science", "History", "Sports"]):
         with patch("app.services.battle_manager._quiz.get_questions", return_value=[]):
             await manager._start_round(state)
             

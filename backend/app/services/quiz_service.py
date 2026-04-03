@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 #TODO Hier die richtige API Implemntieren
+_secure_rng = random.SystemRandom()
 
 @dataclass(frozen=True)
 class Question:
@@ -115,7 +116,7 @@ class InternalQuizProvider(QuizProvider):
     def get_questions(self, n: int | None = None) -> list[Question]:
         questions = list(self._QUESTIONS)
         if n is not None:
-            questions = random.sample(questions, min(n, len(questions)))
+            questions = _secure_rng.sample(questions, min(n, len(questions)))
         return questions
 
     def get_question(self, question_id: str) -> Question | None:

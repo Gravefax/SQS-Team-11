@@ -118,6 +118,7 @@ import asyncio
 import json
 import logging
 import random
+import secrets
 from dataclasses import dataclass, field
 
 from fastapi import WebSocket
@@ -138,6 +139,7 @@ CATEGORIES_TO_OFFER  = 3  # Number of categories the picker can choose from
 
 _quiz = QuizService(InternalQuizProvider())
 logger = logging.getLogger("uvicorn.error")
+_secure_rng = random.SystemRandom()
 
 
 @dataclass
@@ -297,7 +299,7 @@ class BattleManager:
 
     async def _start_game(self, state: MatchState) -> None:
         """Pick random first picker and send match_ready to both players."""
-        state.picker_idx    = random.randint(0, 1)
+        state.picker_idx    = secrets.randbelow(2)
         state.current_round = 1
 
         logger.info(
@@ -329,7 +331,7 @@ class BattleManager:
 
         all_questions        = _quiz.get_questions()
         available_categories = list({q.category for q in all_questions})
-        offered              = random.sample(
+        offered              = _secure_rng.sample(
             available_categories, min(CATEGORIES_TO_OFFER, len(available_categories))
         )
 
@@ -394,10 +396,10 @@ class BattleManager:
 
         if len(cat_q) < QUESTIONS_PER_ROUND:
             others = [q for q in all_q if q not in cat_q]
-            random.shuffle(others)
+            _secure_rng.shuffle(others)
             cat_q = cat_q + others[: QUESTIONS_PER_ROUND - len(cat_q)]
         else:
-            cat_q = random.sample(cat_q, QUESTIONS_PER_ROUND)
+            cat_q = _secure_rng.sample(cat_q, QUESTIONS_PER_ROUND)
 
         state.round_questions = cat_q
 
