@@ -318,7 +318,7 @@ describe("BattleArena Component Tests", () => {
   it("shows opponent disconnected state", async () => {
     renderArena("match-890");
 
-    mockWebSocket.onmessage({
+    mockWebSocket.onmessage?.({
       data: JSON.stringify({ type: "opponent_disconnected" }),
     });
 

@@ -4,7 +4,7 @@ test.describe("Landing page", () => {
   test("loads and shows the Quizard of Oz heading", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /quizard of oz/i })
+      page.getByRole("heading", { name: /quizzard of oz/i })
     ).toBeVisible();
   });
 
@@ -15,7 +15,7 @@ test.describe("Landing page", () => {
 
   test("navbar shows the brand name", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText(/quizard of oz/i).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /quizzard of oz/i })).toBeVisible();
   });
 
   test("navbar shows the login button", async ({ page }) => {
@@ -29,23 +29,22 @@ test.describe("Landing page", () => {
   test("shows the subtitle", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByText(/stelle dein wissen auf die probe/i)
+      page.getByText(/beweise dein wissen\. besiege deine rivalen\./i)
     ).toBeVisible();
   });
 
-  test("shows all three game mode buttons", async ({ page }) => {
+  test("shows the main game mode buttons", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("button", { name: /\branked\b/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /unranked/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /ranked battle/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /übung/i })).toBeVisible();
   });
 
   test("Ranked button is prominent above the other two", async ({ page }) => {
     await page.goto("/");
-    const ranked = page.getByRole("button", { name: /\branked\b/i });
-    const unranked = page.getByRole("button", { name: /unranked/i });
+    const ranked = page.getByRole("button", { name: /ranked battle/i });
+    const training = page.getByRole("button", { name: /übung/i });
     const rankedBox = await ranked.boundingBox();
-    const unrankedBox = await unranked.boundingBox();
-    expect(rankedBox!.y).toBeLessThan(unrankedBox!.y);
+    const trainingBox = await training.boundingBox();
+    expect(rankedBox!.y).toBeLessThan(trainingBox!.y);
   });
 });

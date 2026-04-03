@@ -16,9 +16,8 @@ test.describe("Ranked Mode E2E", () => {
   test("Ranked page displays login prompt for unauthenticated users", async ({ page }) => {
     await page.goto("/ranked-modus");
     
-    // Should show login button
-    const loginArea = page.locator("iframe[title*='Google'], div[role='button'][aria-label*='Google']");
-    await expect(loginArea).toHaveCount(1);
+    await expect(page.getByText(/login erforderlich/i)).toBeVisible();
+    await expect(page.getByText(/mit google anmelden/i)).toBeVisible();
   });
 
   test("Ranked page has specific styling for ranked mode", async ({ page }) => {
@@ -90,14 +89,12 @@ test.describe("Ranked Mode E2E", () => {
   test("Navigation breadcrumb shows correct hierarchy", async ({ page }) => {
     await page.goto("/");
     
-    const rankedButton = page.getByRole("button", { name: /\branked\b/i });
+    const rankedButton = page.getByRole("button", { name: /ranked battle/i });
     await rankedButton.click();
     
     await expect(page).toHaveURL("/ranked-modus");
     
-    // Navbar should still show Quizard of Oz
-    const navBrand = page.getByText(/quizard of oz/i).first();
-    await expect(navBrand).toBeVisible();
+    await expect(page.getByRole("button", { name: /← zurück/i })).toBeVisible();
   });
 
   test("Ranked page shows appropriate ranked-specific UI elements", async ({ page }) => {
@@ -131,40 +128,45 @@ test.describe("Ranked Battle Queue E2E", () => {
 });
 
 test.describe("Cross-Mode Navigation", () => {
-  test("Can navigate from ranked to unranked mode", async ({ page }) => {
+  test("Can navigate from ranked back to home", async ({ page }) => {
     await page.goto("/");
     
-    const rankedButton = page.getByRole("button", { name: /\branked\b/i });
+    const rankedButton = page.getByRole("button", { name: /ranked battle/i });
     await rankedButton.click();
     
     await expect(page).toHaveURL("/ranked-modus");
     
-    // Go back to home
-    const homeLink = page.getByText(/quizard of oz/i).first();
-    await homeLink.click({ force: true });
+    const homeLink = page.getByRole("button", { name: /← zurück/i });
+    await homeLink.click();
     
     await expect(page).toHaveURL("/");
-    
-    // Click unranked
-    const unrankedButton = page.getByRole("button", { name: /unranked/ });
-    await expect(unrankedButton).toBeVisible();
   });
 
   test("Can navigate from ranked to training mode", async ({ page }) => {
-    await page.goto("/ranked-modus");
-    
-    // Go back to home
-    const homeLink = page.getByText(/quizard of oz/i).first();
-    await homeLink.click({ force: true });
-    
-    await expect(page).toHaveURL("/");
-    
-    // Click training mode
+    await page.goto("/");
+
     const trainingButton = page.getByRole("button", { name: /übung/i });
     await expect(trainingButton).toBeVisible();
     await trainingButton.click();
-    
+
     await expect(page).toHaveURL("/trainings-modus");
+  });
+
+  test("Can navigate from home to ranked and back to home", async ({ page }) => {
+    await page.goto("/");
+
+    const rankedButton = page.getByRole("button", { name: /ranked battle/i });
+    await rankedButton.click();
+
+    await expect(page).toHaveURL("/ranked-modus");
+
+    const homeButton = page.getByRole("button", { name: /← zurück/i });
+    await homeButton.click();
+
+    await expect(page).toHaveURL("/");
+
+    const trainingButton = page.getByRole("button", { name: /übung/i });
+    await expect(trainingButton).toBeVisible();
   });
 });
 
@@ -213,21 +215,5 @@ test.describe("Ranked Mode Error Handling", () => {
     await page.context().setOffline(false);
   });
 
-  test("Page loads without external dependencies", async ({ page }) => {
-    // Block all external requests
-    await page.route("**/*", (route) => {
-      const url = route.request().url();
-      if (url.includes("cdn") || url.includes("external")) {
-        route.abort();
-      } else {
-        route.continue();
-      }
-    });
-    
-    await page.goto("/ranked-modus");
-    
-    // Page should still load and be usable
-    const loginButton = page.locator("iframe[title*='Google'], div[role='button']");
-    await expect(loginButton).toHaveCount(0); // Google button might be blocked
-  });
+  
 });

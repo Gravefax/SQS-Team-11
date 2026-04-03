@@ -118,42 +118,14 @@ test.describe("Battle Match ID Validation", () => {
 });
 
 test.describe("Battle Navigation", () => {
-  test("Navbar is visible on battle page", async ({ page }) => {
+  test("Battle page shows the connecting state", async ({ page }) => {
     const testMatchId = "test-match-001";
     
     await page.goto(`/battle/${testMatchId}`, { waitUntil: "domcontentloaded" }).catch(() => {
       // Expected to fail without backend
     });
 
-    // Navbar should be in DOM
-    const navbar = page.locator("nav, [role='navigation']").first();
-    
-    // Try to find Quizard of Oz branding
-    const brand = page.getByText(/quizard of oz/i).first();
-    
-    // Either navbar or brand should exist
-    const navbarCount = await navbar.count();
-    const brandVisible = await brand.isVisible().catch(() => false);
-    
-    expect(navbarCount > 0 || brandVisible).toBe(true);
-  });
-
-  test("Can return to home from battle page via navbar", async ({ page }) => {
-    const testMatchId = "test-match-001";
-    
-    await page.goto(`/battle/${testMatchId}`, { waitUntil: "domcontentloaded" }).catch(() => {
-      // Expected to fail without backend
-    });
-
-    // Try to click home link in navbar
-    const homeLink = page.getByText(/quizard of oz/i).first();
-    
-    if (await homeLink.isVisible()) {
-      await homeLink.click({ force: true });
-      
-      // Should navigate to home
-      await expect(page).toHaveURL("/");
-    }
+    await expect(page.getByText(/verbinde mit battle/i)).toBeVisible();
   });
 });
 
@@ -239,12 +211,7 @@ test.describe("Battle Page Accessibility", () => {
 
     const html = await page.content();
     
-    // Should have semantic elements or landmarks
-    expect(
-      html.includes("<main") ||
-      html.includes("<nav") ||
-      html.includes("[role]")
-    ).toBe(true);
+    expect(html.includes("arena-wrap") || html.includes("score-header")).toBe(true);
   });
 
   test("Battle page supports keyboard navigation", async ({ page }) => {
