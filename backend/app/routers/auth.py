@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from app.database import get_db
 from app.crud import session as crud_session
 from app.crud import user as crud_user
-from app.dtos.login_response import LoginResponse
+from app.schemas.login_response import LoginResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -117,7 +117,11 @@ def login(
         user = crud_user.get_user_by_google_sub(db, payload["sub"])
 
         if not user:
-            username = payload["given_name"] + " " + payload["family_name"]
+            username = (
+                payload.get("name")
+                or (payload.get("given_name", "") + " " + payload.get("family_name", "")).strip()
+                or payload.get("email", "Unknown")
+            )
 
             user = crud_user.create_user(
                 db,

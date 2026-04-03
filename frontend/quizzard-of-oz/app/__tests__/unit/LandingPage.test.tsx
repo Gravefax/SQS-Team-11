@@ -10,69 +10,26 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("LandingPage", () => {
-  it("renders the main heading", () => {
+  it("renders heading", () => {
     render(<LandingPage />);
-    expect(
-      screen.getByRole("heading", { name: /quizard of oz/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /quizzard of oz/i })).toBeInTheDocument();
   });
 
-  it("renders the subtitle", () => {
+  it("renders Ranked Battle and Übung buttons", () => {
     render(<LandingPage />);
-    expect(
-      screen.getByText(/stelle dein wissen auf die probe/i)
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ranked battle/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /übung/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(2);
   });
 
-  it("renders the tagline", () => {
-    render(<LandingPage />);
-    expect(
-      screen.getByText(/das ultimative quiz-erlebnis/i)
-    ).toBeInTheDocument();
-  });
-
-  it("renders the Ranked button", () => {
-    render(<LandingPage />);
-    expect(
-      screen.getByRole("button", { name: /\branked\b/i })
-    ).toBeInTheDocument();
-  });
-
-  it("renders the Unranked button", () => {
-    render(<LandingPage />);
-    expect(
-      screen.getByRole("button", { name: /unranked/i })
-    ).toBeInTheDocument();
-  });
-
-  it("renders the Übung button", () => {
-    render(<LandingPage />);
-    expect(
-      screen.getByRole("button", { name: /übung/i })
-    ).toBeInTheDocument();
-  });
-
-  it("renders exactly 3 game mode buttons", () => {
-    render(<LandingPage />);
-    expect(screen.getAllByRole("button")).toHaveLength(3);
-  });
-
-  it("Ranked button is clickable", async () => {
+  it("navigates to ranked and training modes", async () => {
     const user = userEvent.setup();
     render(<LandingPage />);
-    await user.click(screen.getByRole("button", { name: /\branked\b/i }));
-  });
 
-  it("Unranked button is clickable", async () => {
-    const user = userEvent.setup();
-    render(<LandingPage />);
-    await user.click(screen.getByRole("button", { name: /unranked/i }));
-  });
-
-  it("Übung button navigates to /trainings-modus", async () => {
-    const user = userEvent.setup();
-    render(<LandingPage />);
+    await user.click(screen.getByRole("button", { name: /ranked battle/i }));
     await user.click(screen.getByRole("button", { name: /übung/i }));
+
+    expect(mockPush).toHaveBeenCalledWith("/ranked-modus");
     expect(mockPush).toHaveBeenCalledWith("/trainings-modus");
   });
 });

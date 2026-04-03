@@ -10,32 +10,26 @@ describe("Home page", () => {
   it("renders the Quizard of Oz heading", () => {
     render(<Home />);
     expect(
-      screen.getByRole("heading", { name: /quizard of oz/i })
+      screen.getByRole("heading", { name: /quizzard of oz/i })
     ).toBeInTheDocument();
   });
 
-  it("renders the subtitle", () => {
+  it("renders landing page intro text", () => {
     render(<Home />);
     expect(
-      screen.getByText(/stelle dein wissen auf die probe/i)
+      screen.getByText(/compete · rank · dominate/i)
     ).toBeInTheDocument();
   });
 
-  it("renders all three game mode buttons", () => {
+  it("renders available game mode buttons", () => {
     render(<Home />);
-    expect(screen.getByRole("button", { name: /\branked\b/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /unranked/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ranked battle/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /übung/i })).toBeInTheDocument();
   });
 
   it("Ranked button shows login hint", () => {
     render(<Home />);
     expect(screen.getByText(/login erforderlich/i)).toBeInTheDocument();
-  });
-
-  it("Unranked button shows free play info", () => {
-    render(<Home />);
-    expect(screen.getByText(/frei spielen/i)).toBeInTheDocument();
   });
 
   it("Übung button shows training mode info", () => {
