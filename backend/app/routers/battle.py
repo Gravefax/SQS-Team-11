@@ -35,31 +35,18 @@ async def battle_ws(
     db: Session = Depends(get_db),
 ):
     #Connect player to battle, process messages, cleanup on disconnect.
-    client = websocket.client
-    client_label = f"{client.host}:{client.port}" if client else "unknown"
-    logger.info("Battle WS handshake started match_id=%s client=%s", match_id, client_label)
+    logger.info("Battle WS handshake started")
 
     user = await manager.authenticate(websocket, db)
     if user is None:
-        logger.warning("Battle WS authentication failed match_id=%s client=%s", match_id, client_label)
+        logger.warning("Battle WS authentication failed")
         return
 
     await websocket.accept()
-    logger.info(
-        "Battle WS accepted match_id=%s user_id=%s username=%s client=%s",
-        match_id,
-        user.id,
-        user.username,
-        client_label,
-    )
+    logger.info("Battle WS accepted")
 
     if not await manager.connect(websocket, match_id, user):
-        logger.warning(
-            "Battle WS connect rejected match_id=%s user_id=%s username=%s",
-            match_id,
-            user.id,
-            user.username,
-        )
+        logger.warning("Battle WS connect rejected")
         return
 
     try:
@@ -69,21 +56,10 @@ async def battle_ws(
             await manager.handle_message(match_id, user, raw)
     except WebSocketDisconnect as exc:
         # Normal client disconnect (including reconnect timeout)
-        logger.info(
-            "Battle WS disconnected match_id=%s user_id=%s username=%s code=%s",
-            match_id,
-            user.id,
-            user.username,
-            exc.code,
-        )
+        logger.info("Battle WS disconnected code=%s", exc.code)
     except Exception:
         # Unhandled exception during message processing
-        logger.exception(
-            "Battle WS unhandled error match_id=%s user_id=%s username=%s",
-            match_id,
-            user.id,
-            user.username,
-        )
+        logger.exception("Battle WS unhandled error")
     finally:
         # Always cleanup: remove player, notify opponent, delete match if empty
         await manager.disconnect(websocket, match_id, user)

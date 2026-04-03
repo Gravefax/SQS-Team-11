@@ -175,32 +175,16 @@ class BattleManager:
         """Add player to match. Returns False if full or already connected."""
         state = self._matches.setdefault(match_id, MatchState())
 
-        logger.info(
-            "Battle connect requested match_id=%s user_id=%s username=%s current_players=%s",
-            match_id,
-            user.id,
-            user.username,
-            len(state.players),
-        )
+        logger.info("Battle connect requested")
 
         async with state.lock:
             if len(state.players) >= 2:
-                logger.warning(
-                    "Battle connect rejected: match full match_id=%s user_id=%s username=%s",
-                    match_id,
-                    user.id,
-                    user.username,
-                )
+                logger.warning("Battle connect rejected: match full")
                 await websocket.close(code=_CLOSE_FULL, reason="Match is full")
                 return False
 
             if any(p["user"].id == user.id for p in state.players):
-                logger.warning(
-                    "Battle connect rejected: duplicate connection match_id=%s user_id=%s username=%s",
-                    match_id,
-                    user.id,
-                    user.username,
-                )
+                logger.warning("Battle connect rejected: duplicate connection")
                 await websocket.close(code=_CLOSE_DUPLICATE, reason="Already connected")
                 return False
 
@@ -208,16 +192,11 @@ class BattleManager:
             state.round_wins[str(user.id)] = 0
 
             if len(state.players) < 2:
-                logger.info(
-                    "Battle waiting for opponent match_id=%s waiting_user_id=%s waiting_username=%s",
-                    match_id,
-                    user.id,
-                    user.username,
-                )
+                logger.info("Battle waiting for opponent")
                 await websocket.send_json({"type": "waiting_for_opponent"})
                 return True
 
-        logger.info("Battle match ready: two players connected match_id=%s", match_id)
+        logger.info("Battle match ready")
         await self._start_game(state)
         return True
 
@@ -225,12 +204,7 @@ class BattleManager:
         """Remove player from match and notify opponent. Delete if empty."""
         state = self._matches.get(match_id)
         if not state:
-            logger.info(
-                "Battle disconnect ignored: match not found match_id=%s user_id=%s username=%s",
-                match_id,
-                user.id,
-                user.username,
-            )
+            logger.info("Battle disconnect ignored: match not found")
             return
 
         async with state.lock:
@@ -243,17 +217,11 @@ class BattleManager:
                 "username": user.username,
             })
 
-        logger.info(
-            "Battle disconnected match_id=%s user_id=%s username=%s remaining_players=%s",
-            match_id,
-            user.id,
-            user.username,
-            len(remaining),
-        )
+        logger.info("Battle disconnected")
 
         if not remaining:
             self._matches.pop(match_id, None)
-            logger.info("Battle match cleaned up match_id=%s", match_id)
+            logger.info("Battle match cleaned up")
 
     # ── Incoming client messages ─────────────────────────────────────────── #
 
@@ -261,34 +229,17 @@ class BattleManager:
         """Parse JSON and route to handler (pick_category or answer)."""
         state = self._matches.get(match_id)
         if not state:
-            logger.warning(
-                "Battle message ignored: match not found match_id=%s user_id=%s username=%s",
-                match_id,
-                user.id,
-                user.username,
-            )
+            logger.warning("Battle message ignored: match not found")
             return
 
         try:
             data: dict = json.loads(raw)
         except ValueError:
-            logger.warning(
-                "Battle message parse failed match_id=%s user_id=%s username=%s payload=%r",
-                match_id,
-                user.id,
-                user.username,
-                raw,
-            )
+            logger.warning("Battle message parse failed")
             return
 
         msg_type = data.get("type")
-        logger.debug(
-            "Battle message received match_id=%s user_id=%s username=%s type=%s",
-            match_id,
-            user.id,
-            user.username,
-            msg_type,
-        )
+        logger.debug("Battle message received")
 
         if msg_type == "pick_category":
             await self._handle_category_pick(state, user, data)
@@ -302,12 +253,7 @@ class BattleManager:
         state.picker_idx    = secrets.randbelow(2)
         state.current_round = 1
 
-        logger.info(
-            "Battle game start players=%s first_picker=%s round=%s",
-            [p["user"].username for p in state.players],
-            state.players[state.picker_idx]["user"].username,
-            state.current_round,
-        )
+        logger.info("Battle game start")
 
         p1, p2 = state.players
         for current, opponent in ((p1, p2), (p2, p1)):
@@ -335,12 +281,7 @@ class BattleManager:
             available_categories, min(CATEGORIES_TO_OFFER, len(available_categories))
         )
 
-        logger.info(
-            "Battle round start round=%s picker=%s categories=%s",
-            state.current_round,
-            state.players[state.picker_idx]["user"].username,
-            offered,
-        )
+        logger.info("Battle round start")
 
         picker     = state.players[state.picker_idx]
         non_picker = state.players[1 - state.picker_idx]
@@ -367,30 +308,15 @@ class BattleManager:
         """Validate picker, load questions for category, send to both players."""
         async with state.lock:
             if state.phase != "picking":
-                logger.warning(
-                    "Battle pick_category ignored: wrong phase phase=%s user_id=%s username=%s",
-                    state.phase,
-                    user.id,
-                    user.username,
-                )
+                logger.warning("Battle pick_category ignored: wrong phase")
                 return
             if state.players[state.picker_idx]["user"].id != user.id:
-                logger.warning(
-                    "Battle pick_category ignored: not picker picker=%s user_id=%s username=%s",
-                    state.players[state.picker_idx]["user"].username,
-                    user.id,
-                    user.username,
-                )
+                logger.warning("Battle pick_category ignored: not picker")
                 return
             state.phase = "questions"
 
         category = data.get("category", "")
-        logger.info(
-            "Battle category picked round=%s picker=%s category=%s",
-            state.current_round,
-            user.username,
-            category,
-        )
+        logger.info("Battle category picked")
         all_q    = _quiz.get_questions()
         cat_q    = [q for q in all_q if q.category == category]
 
@@ -417,13 +343,7 @@ class BattleManager:
         q                    = state.round_questions[state.question_idx]
         state.current_answers = {}
 
-        logger.debug(
-            "Battle question sent round=%s index=%s question_id=%s category=%s",
-            state.current_round,
-            state.question_idx + 1,
-            q.id,
-            q.category,
-        )
+        logger.debug("Battle question sent")
 
         for p in state.players:
             await p["ws"].send_json({
@@ -451,29 +371,13 @@ class BattleManager:
 
         async with state.lock:
             if state.phase != "questions":
-                logger.warning(
-                    "Battle answer ignored: wrong phase match_id=%s phase=%s user=%s",
-                    match_id,
-                    state.phase,
-                    user.username,
-                )
+                logger.warning("Battle answer ignored: wrong phase")
                 return
             if uid in state.current_answers:
-                logger.warning(
-                    "Battle answer ignored: duplicate answer match_id=%s user=%s question_index=%s",
-                    match_id,
-                    user.username,
-                    state.question_idx + 1,
-                )
+                logger.warning("Battle answer ignored: duplicate answer")
                 return
             if not state.round_questions or state.round_questions[state.question_idx].id != q_id:
-                logger.warning(
-                    "Battle answer ignored: question mismatch match_id=%s user=%s received=%s expected=%s",
-                    match_id,
-                    user.username,
-                    q_id,
-                    state.round_questions[state.question_idx].id if state.round_questions else "none",
-                )
+                logger.warning("Battle answer ignored: question mismatch")
                 return
 
             state.current_answers[uid] = answer
@@ -489,13 +393,7 @@ class BattleManager:
                 state.question_idx += 1
                 done_with_round = state.question_idx >= len(state.round_questions)
 
-        logger.debug(
-            "Battle answer processed match_id=%s user=%s correct=%s score_this_round=%s",
-            match_id,
-            user.username,
-            correct,
-            state.round_scores.get(uid, 0),
-        )
+        logger.debug("Battle answer processed")
 
         ws = next(p["ws"] for p in state.players if str(p["user"].id) == uid)
         await ws.send_json({
@@ -536,17 +434,7 @@ class BattleManager:
         game_over        = w1 >= ROUNDS_TO_WIN or w2 >= ROUNDS_TO_WIN
         next_picker_name = state.players[state.picker_idx]["user"].username
 
-        logger.info(
-            "Battle round result match_id=%s round=%s score=%s-%s wins=%s-%s next_picker=%s game_over=%s",
-            match_id,
-            state.current_round,
-            s1,
-            s2,
-            w1,
-            w2,
-            next_picker_name,
-            game_over,
-        )
+        logger.info("Battle round result")
 
         for current, opponent in ((p1, p2), (p2, p1)):
             cid = str(current["user"].id)
@@ -587,13 +475,7 @@ class BattleManager:
         w2          = state.round_wins.get(id2, 0)
         winner      = p1["user"].username if w1 >= w2 else p2["user"].username
 
-        logger.info(
-            "Battle game over match_id=%s winner=%s final_wins=%s-%s",
-            match_id,
-            winner,
-            w1,
-            w2,
-        )
+        logger.info("Battle game over")
 
         for current, opponent in ((p1, p2), (p2, p1)):
             cid = str(current["user"].id)
