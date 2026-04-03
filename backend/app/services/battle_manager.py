@@ -142,6 +142,11 @@ logger = logging.getLogger("uvicorn.error")
 _secure_rng = random.SystemRandom()
 
 
+def _ws_id(websocket: WebSocket) -> str:
+    """Stable short id for correlating websocket lifecycle logs."""
+    return hex(id(websocket))
+
+
 @dataclass
 class MatchState:
     """Game state for one match. Protect mutations with state.lock."""
@@ -175,16 +180,34 @@ class BattleManager:
         """Add player to match. Returns False if full or already connected."""
         state = self._matches.setdefault(match_id, MatchState())
 
-        logger.info("Battle connect requested")
+        logger.info(
+            "Battle connect requested match_id=%s user_id=%s username=%s ws=%s",
+            match_id,
+            user.id,
+            user.username,
+            _ws_id(websocket),
+        )
 
         async with state.lock:
             if len(state.players) >= 2:
-                logger.warning("Battle connect rejected: match full")
+                logger.warning(
+                    "Battle connect rejected: match full match_id=%s user_id=%s username=%s ws=%s",
+                    match_id,
+                    user.id,
+                    user.username,
+                    _ws_id(websocket),
+                )
                 await websocket.close(code=_CLOSE_FULL, reason="Match is full")
                 return False
 
             if any(p["user"].id == user.id for p in state.players):
-                logger.warning("Battle connect rejected: duplicate connection")
+                logger.warning(
+                    "Battle connect rejected: duplicate connection match_id=%s user_id=%s username=%s ws=%s",
+                    match_id,
+                    user.id,
+                    user.username,
+                    _ws_id(websocket),
+                )
                 await websocket.close(code=_CLOSE_DUPLICATE, reason="Already connected")
                 return False
 
@@ -192,19 +215,56 @@ class BattleManager:
             state.round_wins[str(user.id)] = 0
 
             if len(state.players) < 2:
-                logger.info("Battle waiting for opponent")
-                await websocket.send_json({"type": "waiting_for_opponent"})
-                return True
+                logger.info(
+                    "Battle waiting for opponent match_id=%s user_id=%s username=%s players=%s",
+                    match_id,
+                    user.id,
+                    user.username,
+                    len(state.players),
+                )
+                try:
+                    await websocket.send_json({"type": "waiting_for_opponent"})
+                    return True
+                except Exception:
+                    logger.warning(
+                        "Battle waiting message failed: socket disconnected match_id=%s user_id=%s username=%s ws=%s",
+                        match_id,
+                        user.id,
+                        user.username,
+                        _ws_id(websocket),
+                    )
+                    state.players[:] = [p for p in state.players if p["ws"] is not websocket]
+                    if not state.players:
+                        self._matches.pop(match_id, None)
+                    return False
 
-        logger.info("Battle match ready")
-        await self._start_game(state)
+        logger.info("Battle match ready match_id=%s players=%s", match_id, len(state.players))
+        try:
+            await self._start_game(state, match_id)
+        except Exception:
+            logger.warning(
+                "Battle game start aborted: WebSocket closed during startup match_id=%s user_id=%s username=%s ws=%s",
+                match_id,
+                user.id,
+                user.username,
+                _ws_id(websocket),
+            )
+            async with state.lock:
+                state.players[:] = [p for p in state.players if p["ws"] is not websocket]
+            return False
         return True
 
     async def disconnect(self, websocket: WebSocket, match_id: str, user: User) -> None:
         """Remove player from match and notify opponent. Delete if empty."""
         state = self._matches.get(match_id)
         if not state:
-            logger.info("Battle disconnect ignored: match not found")
+            logger.info(
+                "Battle disconnect ignored: match not found match_id=%s user_id=%s username=%s ws=%s",
+                match_id,
+                user.id,
+                user.username,
+                _ws_id(websocket),
+            )
             return
 
         async with state.lock:
@@ -217,11 +277,17 @@ class BattleManager:
                 "username": user.username,
             })
 
-        logger.info("Battle disconnected")
+        logger.info(
+            "Battle disconnected match_id=%s user_id=%s username=%s remaining_players=%s",
+            match_id,
+            user.id,
+            user.username,
+            len(remaining),
+        )
 
         if not remaining:
             self._matches.pop(match_id, None)
-            logger.info("Battle match cleaned up")
+            logger.info("Battle match cleaned up match_id=%s", match_id)
 
     # ── Incoming client messages ─────────────────────────────────────────── #
 
@@ -248,14 +314,20 @@ class BattleManager:
 
     # ── Game flow ────────────────────────────────────────────────────────── #
 
-    async def _start_game(self, state: MatchState) -> None:
+    async def _start_game(self, state: MatchState, match_id: str = "unknown") -> None:
         """Pick random first picker and send match_ready to both players."""
         state.picker_idx    = secrets.randbelow(2)
         state.current_round = 1
 
-        logger.info("Battle game start")
-
         p1, p2 = state.players
+        logger.info(
+            "Battle game start match_id=%s player1=%s player2=%s picker=%s",
+            match_id,
+            p1["user"].username,
+            p2["user"].username,
+            state.players[state.picker_idx]["user"].username,
+        )
+
         for current, opponent in ((p1, p2), (p2, p1)):
             await current["ws"].send_json({
                 "type":              "match_ready",
@@ -434,7 +506,15 @@ class BattleManager:
         game_over        = w1 >= ROUNDS_TO_WIN or w2 >= ROUNDS_TO_WIN
         next_picker_name = state.players[state.picker_idx]["user"].username
 
-        logger.info("Battle round result")
+        logger.info(
+            "Battle round result match_id=%s round=%s score=%s:%s wins=%s:%s",
+            match_id,
+            state.current_round,
+            s1,
+            s2,
+            w1,
+            w2,
+        )
 
         for current, opponent in ((p1, p2), (p2, p1)):
             cid = str(current["user"].id)
@@ -475,7 +555,13 @@ class BattleManager:
         w2          = state.round_wins.get(id2, 0)
         winner      = p1["user"].username if w1 >= w2 else p2["user"].username
 
-        logger.info("Battle game over")
+        logger.info(
+            "Battle game over match_id=%s winner=%s wins=%s:%s",
+            match_id,
+            winner,
+            w1,
+            w2,
+        )
 
         for current, opponent in ((p1, p2), (p2, p1)):
             cid = str(current["user"].id)

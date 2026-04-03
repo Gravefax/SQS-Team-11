@@ -139,6 +139,7 @@ export default function BattleArena({ matchId }: BattleArenaProps) {
   useEffect(() => {
     const ws = new WebSocket(getWsUrl(`/battle/ws/${matchId}`));
     wsRef.current = ws;
+    let intentionalClose = false;
 
     ws.onmessage = (event: MessageEvent) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -251,6 +252,7 @@ export default function BattleArena({ matchId }: BattleArenaProps) {
     };
 
     ws.onclose = (event: CloseEvent) => {
+      if (intentionalClose) return;
       if (phaseRef.current === 'game_over' || phaseRef.current === 'opponent_disconnected') return;
       if (event.code === 4001 || event.code === 4003) {
         setErrorMsg('Login erforderlich.');
@@ -263,6 +265,7 @@ export default function BattleArena({ matchId }: BattleArenaProps) {
 
     return () => {
       stopTimer();
+      intentionalClose = true;
       ws.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

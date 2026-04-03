@@ -83,6 +83,22 @@ async def test_connect_first_player():
 
 
 @pytest.mark.asyncio
+async def test_connect_first_player_send_failure_cleans_state():
+    """If waiting message send fails, player is removed to avoid stale duplicate state."""
+    manager = BattleManager()
+    ws = _make_websocket()
+    user = _make_user()
+    match_id = str(uuid4())
+
+    ws.send_json.side_effect = RuntimeError("socket already closed")
+
+    result = await manager.connect(ws, match_id, user)
+
+    assert result is False
+    assert match_id not in manager._matches
+
+
+@pytest.mark.asyncio
 async def test_connect_second_player():
     """Second player connection triggers game start."""
     manager = BattleManager()
