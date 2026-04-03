@@ -85,6 +85,25 @@ describe("Queue Component Tests", () => {
     );
   });
 
+  it("ignores close errors after matched event", async () => {
+    const user = userEvent.setup();
+    render(<Queue ranked={false} />);
+    await user.click(screen.getByRole("button", { name: /queue beitreten/i }));
+
+    const ws = socketInstances[0];
+    ws.onmessage?.({ data: JSON.stringify({ type: "matched", match_id: "test-456" }) });
+    ws.onclose?.({ code: 1006 });
+
+    await waitFor(
+      () => {
+        expect(mockPush).toHaveBeenCalledWith("/battle/test-456");
+      },
+      { timeout: 3000 }
+    );
+
+    expect(screen.queryByText(/verbindung zum server fehlgeschlagen/i)).not.toBeInTheDocument();
+  });
+
   it("shows auth error on close code 4001", async () => {
     const user = userEvent.setup();
     render(<Queue ranked />);

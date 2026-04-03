@@ -26,6 +26,7 @@ export default function Queue({ ranked = false }: QueueProps) {
   const wsRef = useRef<WebSocket | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cancelledRef = useRef(false);
+  const matchedRef = useRef(false);
 
   const accent = ranked
     ? { rgb: '255,60,20', dim: 'rgba(255,60,20,0.55)', muted: 'rgba(255,140,90,0.5)' }
@@ -45,6 +46,7 @@ export default function Queue({ ranked = false }: QueueProps) {
 
   function joinQueue() {
     cancelledRef.current = false;
+    matchedRef.current = false;
     setQueueState('connecting');
 
     const ws = new WebSocket(getWsUrl('/battle/queue'));
@@ -58,6 +60,7 @@ export default function Queue({ ranked = false }: QueueProps) {
         startTimer();
       } else if (data.type === 'matched' && data.match_id) {
         stopTimer();
+        matchedRef.current = true;
         setMatchId(data.match_id);
         setQueueState('matched');
         setTimeout(() => router.push(`/battle/${data.match_id}`), 2200);
@@ -67,6 +70,7 @@ export default function Queue({ ranked = false }: QueueProps) {
     ws.onclose = (event: CloseEvent) => {
       stopTimer();
       if (cancelledRef.current) return;
+      if (matchedRef.current) return;
 
       if (event.code === 4001 || event.code === 4003) {
         setErrorMsg('Login erforderlich. Bitte melde dich an, um zu spielen.');
@@ -82,6 +86,7 @@ export default function Queue({ ranked = false }: QueueProps) {
 
   function cancelQueue() {
     cancelledRef.current = true;
+    matchedRef.current = false;
     wsRef.current?.close();
     wsRef.current = null;
     stopTimer();
@@ -91,6 +96,7 @@ export default function Queue({ ranked = false }: QueueProps) {
   useEffect(() => {
     return () => {
       cancelledRef.current = true;
+      matchedRef.current = false;
       wsRef.current?.close();
       stopTimer();
     };
