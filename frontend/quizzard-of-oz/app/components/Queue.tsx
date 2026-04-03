@@ -2,27 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getWsUrl } from '@/app/lib/utils/wsUrl';
 
 type QueueState = 'idle' | 'connecting' | 'searching' | 'matched' | 'error';
 
 interface QueueProps {
   readonly ranked?: boolean;
-}
-
-function getWsUrl(path: string): string {
-  const wsBaseFromEnv = process.env.NEXT_PUBLIC_WS_BASE;
-  if (wsBaseFromEnv) {
-    return `${wsBaseFromEnv.replace(/\/$/, '')}${path}`;
-  }
-
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
-  if (apiBase.startsWith('/')) {
-    const protocol = globalThis.location.protocol === 'https:' ? 'wss' : 'ws';
-    return `${protocol}://${globalThis.location.host}${apiBase}${path}`;
-  }
-
-  const wsBase = apiBase.replace(/^https/, 'wss').replace(/^http/, 'ws');
-  return `${wsBase}${path}`;
 }
 
 function formatTime(totalSeconds: number): string {

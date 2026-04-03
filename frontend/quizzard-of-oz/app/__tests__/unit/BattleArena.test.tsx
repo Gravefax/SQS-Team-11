@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import BattleArena from "@/app/components/BattleArena";
+import BattleArena from "@/app/components/battle/BattleArena";
 
 const mockPush = vi.fn();
 

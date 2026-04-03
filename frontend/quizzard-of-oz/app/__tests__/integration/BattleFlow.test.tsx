@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import BattleArena from "@/app/components/BattleArena";
+import BattleArena from "@/app/components/battle/BattleArena";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -18,7 +18,7 @@ type MockWebSocketInstance = {
 
 type MockWebSocketClass = {
   new (url: string): MockWebSocketInstance;
-  instance: MockWebSocketInstance | null;
+  readonly instance: MockWebSocketInstance | null;
 };
 
 let mockWebSocket!: MockWebSocketInstance;
@@ -26,13 +26,16 @@ let mockWebSocketClass: MockWebSocketClass;
 
 beforeEach(() => {
   mockWebSocketClass = class MockWebSocket {
-    private static instance: MockWebSocketInstance | null = null;
+    private static _instance: MockWebSocketInstance | null = null;
+    static get instance(): MockWebSocketInstance | null {
+      return MockWebSocket._instance;
+    }
     send = vi.fn();
     close = vi.fn();
     onmessage: ((event: MockMessageEvent) => void) | null = null;
     onclose: ((event: MockCloseEvent) => void) | null = null;
     constructor() {
-      MockWebSocket.instance = this;
+      MockWebSocket._instance = this;
     }
   };
 

@@ -38,21 +38,7 @@ export function answerTextColor(isCorrect: boolean, isWrong: boolean): string {
  * getWsUrl('/battle/ws/123')
  * // → 'ws://localhost:3000/api/battle/ws/123'
  */
-export function getWsUrl(path: string): string {
-  const wsBaseFromEnv = process.env.NEXT_PUBLIC_WS_BASE;
-  if (wsBaseFromEnv) {
-    return `${wsBaseFromEnv.replace(/\/$/, '')}${path}`;
-  }
-
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
-  if (apiBase.startsWith('/')) {
-    const protocol = globalThis.location.protocol === 'https:' ? 'wss' : 'ws';
-    return `${protocol}://${globalThis.location.host}${apiBase}${path}`;
-  }
-
-  const wsBase = apiBase.replace(/^https/, 'wss').replace(/^http/, 'ws');
-  return `${wsBase}${path}`;
-}
+export { getWsUrl } from '@/app/lib/utils/wsUrl';
 
 /**
  * Maps round outcome ('win' | 'loss' | 'tie') to display metadata.
