@@ -6,7 +6,7 @@ with patch("sqlalchemy.create_engine"):
     with patch("app.database.Base.metadata.create_all"):
         from main import app
 
-from app.services.matchmaking_service import MatchmakingService, _CLOSE_DUPLICATE
+from app.services.matchmaking_service import MatchmakingService
 from fastapi import WebSocketDisconnect
 
 

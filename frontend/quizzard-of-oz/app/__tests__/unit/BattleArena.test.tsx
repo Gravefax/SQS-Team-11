@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import BattleArena from "@/app/components/BattleArena";
 
@@ -14,6 +14,7 @@ type MockCloseEvent = Pick<CloseEvent, "code">;
 type MockErrorEvent = Pick<Event, "type">;
 
 type MockWebSocketInstance = {
+  url: string;
   send: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
   onmessage: ((event: MockMessageEvent) => void) | null;
@@ -30,16 +31,23 @@ type MockWebSocketClass = {
 
 let mockWebSocket!: MockWebSocketInstance;
 let mockWebSocketClass: MockWebSocketClass;
+let originalWsBase: string | undefined;
+let originalApiBase: string | undefined;
 
 beforeEach(() => {
+  originalWsBase = process.env.NEXT_PUBLIC_WS_BASE;
+  originalApiBase = process.env.NEXT_PUBLIC_API_BASE;
+
   mockWebSocketClass = class MWS {
     static readonly instance = { current: null as MockWebSocketInstance | null };
+    url: string;
     send = vi.fn();
     close = vi.fn();
     onmessage: ((event: MockMessageEvent) => void) | null = null;
     onclose: ((event: MockCloseEvent) => void) | null = null;
     onerror: ((event: MockErrorEvent) => void) | null = null;
-    constructor() {
+    constructor(url: string) {
+      this.url = url;
       MWS.instance.current = this;
     }
   };
@@ -52,12 +60,39 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  if (originalWsBase === undefined) {
+    delete process.env.NEXT_PUBLIC_WS_BASE;
+  } else {
+    process.env.NEXT_PUBLIC_WS_BASE = originalWsBase;
+  }
+
+  if (originalApiBase === undefined) {
+    delete process.env.NEXT_PUBLIC_API_BASE;
+  } else {
+    process.env.NEXT_PUBLIC_API_BASE = originalApiBase;
+  }
+
+  vi.useRealTimers();
   vi.clearAllMocks();
 });
 
 const renderArena = (matchId: string) => {
   render(<BattleArena matchId={matchId} />);
   mockWebSocket = mockWebSocketClass.instance.current as MockWebSocketInstance;
+};
+
+const emitMessage = async (payload: Record<string, unknown>) => {
+  await act(async () => {
+    mockWebSocket.onmessage?.({
+      data: JSON.stringify(payload),
+    });
+  });
+};
+
+const emitClose = async (code: number) => {
+  await act(async () => {
+    mockWebSocket.onclose?.({ code });
+  });
 };
 
 describe("BattleArena Component Tests", () => {
@@ -336,6 +371,197 @@ describe("BattleArena Component Tests", () => {
     await waitFor(() => {
       expect(screen.getByText(/verbindungsfehler/i)).toBeInTheDocument();
       expect(screen.getByText(/login erforderlich/i)).toBeInTheDocument();
+    });
+  });
+
+  it("uses NEXT_PUBLIC_WS_BASE when building the websocket url", () => {
+    process.env.NEXT_PUBLIC_WS_BASE = "wss://example.test/ws/";
+
+    renderArena("match-902");
+
+    expect(mockWebSocket.url).toBe("wss://example.test/ws/battle/ws/match-902");
+  });
+
+  it("uses a relative NEXT_PUBLIC_API_BASE when building the websocket url", () => {
+    process.env.NEXT_PUBLIC_API_BASE = "/api";
+
+    renderArena("match-903");
+
+    expect(mockWebSocket.url).toContain("/api/battle/ws/match-903");
+    expect(mockWebSocket.url.startsWith("ws://")).toBe(true);
+  });
+
+  it("counts down the question timer", async () => {
+    vi.useFakeTimers();
+    renderArena("match-904");
+
+    await emitMessage({
+      type: "match_ready",
+      your_username: "Alice",
+      opponent_username: "Bob",
+      you_pick_first: true,
+      rounds_to_win: 3,
+    });
+
+    await emitMessage({
+      type: "question",
+      question_number: 1,
+      total_questions: 3,
+      question_id: "q1",
+      text: "What is H2O?",
+      answers: ["Water", "Oxygen", "Hydrogen", "Salt"],
+      category: "Science",
+    });
+
+    expect(screen.getByText("20")).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+
+    expect(screen.getByText("19")).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(19000);
+    });
+
+    expect(screen.getByText("0")).toBeInTheDocument();
+  });
+
+  it("shows wrong answer feedback and ignores duplicate submissions", async () => {
+    const user = userEvent.setup();
+    renderArena("match-905");
+
+    await emitMessage({
+      type: "match_ready",
+      your_username: "Alice",
+      opponent_username: "Bob",
+      you_pick_first: true,
+      rounds_to_win: 3,
+    });
+
+    await emitMessage({
+      type: "question",
+      question_number: 1,
+      total_questions: 3,
+      question_id: "q1",
+      text: "What is H2O?",
+      answers: ["Water", "Oxygen", "Hydrogen", "Salt"],
+      category: "Science",
+    });
+
+    const oxygenButton = await screen.findByRole("button", { name: /oxygen/i });
+    const saltButton = await screen.findByRole("button", { name: /salt/i });
+
+    await user.click(oxygenButton);
+    await user.click(saltButton);
+
+    expect(mockWebSocket.send).toHaveBeenCalledTimes(1);
+    expect(mockWebSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: "answer", question_id: "q1", answer: "Oxygen" })
+    );
+
+    await emitMessage({
+      type: "answer_result",
+      correct: false,
+      correct_answer: "Water",
+      your_score_this_round: 0,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/falsch\. warte auf gegner/i)).toBeInTheDocument();
+      expect(screen.getByText("✗")).toBeInTheDocument();
+    });
+  });
+
+  it("shows loss and tie round results", async () => {
+    renderArena("match-906");
+
+    await emitMessage({
+      type: "match_ready",
+      your_username: "Alice",
+      opponent_username: "Bob",
+      you_pick_first: true,
+      rounds_to_win: 3,
+    });
+
+    await emitMessage({
+      type: "round_result",
+      round: 1,
+      outcome: "loss",
+      your_score: 1,
+      opponent_score: 2,
+      your_total_wins: 0,
+      opponent_total_wins: 1,
+      next_picker: "Bob",
+      game_over: false,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/runde verloren/i)).toBeInTheDocument();
+      expect(screen.getByText(/nächste runde/i)).toBeInTheDocument();
+    });
+
+    renderArena("match-907");
+
+    await emitMessage({
+      type: "match_ready",
+      your_username: "Alice",
+      opponent_username: "Bob",
+      you_pick_first: true,
+      rounds_to_win: 3,
+    });
+
+    await emitMessage({
+      type: "round_result",
+      round: 1,
+      outcome: "tie",
+      your_score: 1,
+      opponent_score: 1,
+      your_total_wins: 0,
+      opponent_total_wins: 0,
+      next_picker: "Bob",
+      game_over: false,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/unentschieden/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows defeat in game over state", async () => {
+    renderArena("match-908");
+
+    await emitMessage({
+      type: "match_ready",
+      your_username: "Alice",
+      opponent_username: "Bob",
+      you_pick_first: true,
+      rounds_to_win: 3,
+    });
+
+    await emitMessage({
+      type: "game_over",
+      winner: "Bob",
+      you_won: false,
+      your_wins: 1,
+      opponent_wins: 3,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/defeat/i)).toBeInTheDocument();
+      expect(screen.getByText(/bob hat gewonnen/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows connection error for unexpected close codes", async () => {
+    renderArena("match-909");
+
+    await emitClose(1006);
+
+    await waitFor(() => {
+      expect(screen.getByText(/verbindungsfehler/i)).toBeInTheDocument();
+      expect(screen.getByText(/verbindung unterbrochen/i)).toBeInTheDocument();
     });
   });
 });
