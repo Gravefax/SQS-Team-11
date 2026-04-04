@@ -371,10 +371,10 @@ class BattleManager:
             TriviaUpstreamPayloadError,
         ) as exc:
             logger.error(
-                "Battle round preparation failed match_id=%s round=%s reason=%s",
+                "Battle round preparation failed match_id=%s round=%s error_type=%s",
                 match_id,
                 state.current_round,
-                exc,
+                type(exc).__name__,
             )
             await self._abort_match(match_id, state, _PREPARE_QUESTIONS_ERROR)
             return
@@ -450,11 +450,10 @@ class BattleManager:
             TriviaUpstreamPayloadError,
         ) as exc:
             logger.error(
-                "Battle category load failed match_id=%s round=%s category=%s reason=%s",
+                "Battle category load failed match_id=%s round=%s error_type=%s",
                 match_id,
                 state.current_round,
-                category,
-                exc,
+                type(exc).__name__,
             )
             await self._abort_match(match_id, state, _PREPARE_QUESTIONS_ERROR)
             return
