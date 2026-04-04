@@ -35,7 +35,14 @@ def get_quiz_service_dependency() -> QuizService:
     return get_quiz_service()
 
 
-@router.get("/practice/questions", response_model=list[QuestionResponse])
+@router.get(
+    "/practice/questions",
+    response_model=list[QuestionResponse],
+    responses={
+        502: {"description": "Trivia upstream returned an invalid response"},
+        503: {"description": "Trivia questions are temporarily unavailable"},
+    },
+)
 def get_practice_questions(
     service: Annotated[QuizService, Depends(get_quiz_service_dependency)],
 ):

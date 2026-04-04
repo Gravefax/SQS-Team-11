@@ -138,6 +138,7 @@ from app.services.trivia_types import Question
 _CLOSE_FULL      = 4004  # Second player cannot join; match is full
 _CLOSE_DUPLICATE = 4005  # Same user attempting reconnection to active match
 _CLOSE_INTERNAL  = 1011  # Internal question preparation failure
+_PREPARE_QUESTIONS_ERROR = "Unable to prepare questions"
 
 # Game configuration constants
 QUESTIONS_PER_ROUND  = 3  # Questions per round (both players answer)
@@ -375,7 +376,7 @@ class BattleManager:
                 state.current_round,
                 exc,
             )
-            await self._abort_match(match_id, state, "Unable to prepare questions")
+            await self._abort_match(match_id, state, _PREPARE_QUESTIONS_ERROR)
             return
 
         if not offered:
@@ -384,7 +385,7 @@ class BattleManager:
                 match_id,
                 state.current_round,
             )
-            await self._abort_match(match_id, state, "Unable to prepare questions")
+            await self._abort_match(match_id, state, _PREPARE_QUESTIONS_ERROR)
             return
 
         state.offered_categories = offered
@@ -455,7 +456,7 @@ class BattleManager:
                 category,
                 exc,
             )
-            await self._abort_match(match_id, state, "Unable to prepare questions")
+            await self._abort_match(match_id, state, _PREPARE_QUESTIONS_ERROR)
             return
 
         state.round_questions = cat_q

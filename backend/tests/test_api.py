@@ -10,6 +10,8 @@ with patch("sqlalchemy.create_engine") as mock_engine:
         from main import app
 
 from app.routers.quiz import get_quiz_service_dependency
+from app.services.trivia_client import TriviaUpstreamUnavailableError
+from app.services.trivia_service import TriviaInsufficientQuestionsError
 from app.services.trivia_types import Question
 
 
@@ -27,6 +29,17 @@ class StubQuizService:
         for question in self._questions:
             if question.id == question_id:
                 return (answer == question.correct_answer, question.correct_answer)
+        return None
+
+
+class RaisingQuizService:
+    def __init__(self, error: Exception) -> None:
+        self._error = error
+
+    def get_questions(self, n: int | None = None, **kwargs) -> list[Question]:
+        raise self._error
+
+    def check_answer(self, question_id: str, answer: str) -> tuple[bool, str] | None:
         return None
 
 
@@ -121,3 +134,25 @@ def test_check_answer_unknown_question():
     )
 
     assert response.status_code == 404
+
+
+def test_get_practice_questions_returns_503_when_upstream_unavailable():
+    app.dependency_overrides[get_quiz_service_dependency] = (
+        lambda: RaisingQuizService(TriviaUpstreamUnavailableError("timeout"))
+    )
+
+    response = client.get("/quiz/practice/questions")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Trivia API is currently unavailable"}
+
+
+def test_get_practice_questions_returns_503_when_questions_are_insufficient():
+    app.dependency_overrides[get_quiz_service_dependency] = (
+        lambda: RaisingQuizService(TriviaInsufficientQuestionsError("Not enough cached questions"))
+    )
+
+    response = client.get("/quiz/practice/questions")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Not enough cached questions"}
