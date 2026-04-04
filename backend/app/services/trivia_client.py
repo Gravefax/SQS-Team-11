@@ -75,11 +75,7 @@ class TriviaApiClient:
             )
 
             try:
-                response = self._client.get(
-                    TRIVIA_QUESTIONS_PATH,
-                    params=params,
-                    headers=self._build_headers(),
-                )
+                response = self._request_questions(params)
             except (httpx.TimeoutException, httpx.TransportError) as exc:
                 if attempt < attempts:
                     self._log_retry("transport", attempt, attempts, exc)
@@ -96,21 +92,7 @@ class TriviaApiClient:
                     f"Trivia API unavailable with status {response.status_code}"
                 )
 
-            if response.status_code >= 400:
-                raise TriviaUpstreamResponseError(
-                    response.status_code,
-                    f"Trivia API returned status {response.status_code}",
-                )
-
-            try:
-                payload = response.json()
-            except ValueError as exc:
-                raise TriviaUpstreamPayloadError("Trivia API returned invalid JSON") from exc
-
-            if not isinstance(payload, list):
-                raise TriviaUpstreamPayloadError("Trivia API returned a non-list payload")
-
-            return payload
+            return self._parse_questions_payload(response)
 
         raise TriviaUpstreamUnavailableError("Trivia API request failed")
 
@@ -141,6 +123,31 @@ class TriviaApiClient:
             return
 
         self._sleeper(self._settings.backoff_seconds * (2 ** (attempt - 1)))
+
+    def _request_questions(self, params: dict[str, str]) -> httpx.Response:
+        return self._client.get(
+            TRIVIA_QUESTIONS_PATH,
+            params=params,
+            headers=self._build_headers(),
+        )
+
+    @staticmethod
+    def _parse_questions_payload(response: httpx.Response) -> list[dict[str, Any]]:
+        if response.status_code >= 400:
+            raise TriviaUpstreamResponseError(
+                response.status_code,
+                f"Trivia API returned status {response.status_code}",
+            )
+
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise TriviaUpstreamPayloadError("Trivia API returned invalid JSON") from exc
+
+        if not isinstance(payload, list):
+            raise TriviaUpstreamPayloadError("Trivia API returned a non-list payload")
+
+        return payload
 
     def _log_retry(
         self,
