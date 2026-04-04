@@ -115,6 +115,7 @@ Logging:
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import logging
 import secrets
@@ -152,6 +153,14 @@ _quiz = get_quiz_service()
 def _ws_id(websocket: WebSocket) -> str:
     """Stable short id for correlating websocket lifecycle logs."""
     return hex(id(websocket))
+
+
+def _safe_log_value(value: object) -> str:
+    """Return alphanumeric values as-is; encode everything else for safe logging."""
+    text = str(value)
+    if text.isalnum():
+        return text
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 
 @dataclass
@@ -372,7 +381,7 @@ class BattleManager:
         ) as exc:
             logger.error(
                 "Battle round preparation failed match_id=%s round=%s error_type=%s",
-                match_id,
+                _safe_log_value(match_id),
                 state.current_round,
                 type(exc).__name__,
             )
@@ -382,7 +391,7 @@ class BattleManager:
         if not offered:
             logger.error(
                 "Battle round preparation failed match_id=%s round=%s reason=no_categories",
-                match_id,
+                _safe_log_value(match_id),
                 state.current_round,
             )
             await self._abort_match(match_id, state, _PREPARE_QUESTIONS_ERROR)
@@ -451,7 +460,7 @@ class BattleManager:
         ) as exc:
             logger.error(
                 "Battle category load failed match_id=%s round=%s error_type=%s",
-                match_id,
+                _safe_log_value(match_id),
                 state.current_round,
                 type(exc).__name__,
             )
